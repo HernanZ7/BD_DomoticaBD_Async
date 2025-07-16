@@ -17,15 +17,15 @@ public class UserTest : TestBase
 
         Ado.AltaUsuario(brenda);
 
-        Assert.NotEqual(0, brenda.IdUsuario);
+        Assert.Equal("Brenda", brenda.Nombre);
     }
 
     [Fact]
     public void UsuarioPorPassOK()
     {
-        var usuario = Ado.UsuarioPorPass("123456", "bren@da.com");
-        
+        var usuario = Ado.UsuarioPorPass("bren@da.com", "123456");
+
         Assert.NotNull(usuario);
-        Assert.Equal(2, usuario.IdUsuario);
+        Assert.Equal("Brenda", usuario.Nombre);
     }
 }

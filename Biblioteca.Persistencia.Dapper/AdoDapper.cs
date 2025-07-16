@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Threading.Tasks;
 using Dapper;
 
 namespace Biblioteca.Persistencia.Dapper;
@@ -24,14 +25,15 @@ public class AdoDapper : IAdo
         WHERE   idCasa = @id;";
 
     private readonly string _queryUsuario
-    = @"SELECT Correo, Contrasenia
+    = @"SELECT *
         FROM Usuario
-        WHERE Correo = @correo and Contrasenia = @contrasenia;";
+        WHERE Correo = @Correo 
+        AND Contrasenia = SHA2(@Contrasenia, 256);";
 
     public AdoDapper(IDbConnection conexion)
     => _conexion = conexion;
 
-    public void AltaUsuario(Usuario usuario)
+    public async void AltaUsuario(Usuario usuario)
     {
         var parametros = new DynamicParameters();
         parametros.Add("@unidUsuario", direction: ParameterDirection.Output);
@@ -124,9 +126,10 @@ public class AdoDapper : IAdo
     // query de Usuario
     public Usuario? UsuarioPorPass(string Correo, string Contrasenia)
     {
-        var usuario = _conexion.QueryFirstOrDefault(_queryUsuario, new { correo = Correo, contrasenia = Contrasenia });
-        return usuario;
+        var usuario = _conexion.QueryFirstOrDefault<Usuario>(_queryUsuario, new {Correo, Contrasenia });
 
+        
+        return usuario;
     }
 }
 

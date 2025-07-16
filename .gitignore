@@ -4,6 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 # User-specific files
+
+Biblioteca.Persistencia.Dapper.Test/appSettings.json
+Biblioteca.Persistencia.Dapper.TestAsync/appSettings.json
 *.rsuser
 *.suo
 *.user
@@ -398,3 +401,14 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
+
+# Built Visual Studio Code Extensions
+*.vsix
