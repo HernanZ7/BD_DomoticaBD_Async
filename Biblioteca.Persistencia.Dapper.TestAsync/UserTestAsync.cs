@@ -15,7 +15,7 @@ public class UserTest : TestBaseAsync
             Contrasenia = "123456"
         };
 
-        await AdoAsync.AltaUsuario(brenda);
+        await AdoAsync.AltaUsuarioAsync(brenda);
 
         Assert.NotNull(brenda);
         Assert.NotEqual(0, brenda.IdUsuario);
@@ -24,7 +24,7 @@ public class UserTest : TestBaseAsync
     [Fact]
     public async Task UsuarioPorPassOKAsync()
     {
-        var usuario = await AdoAsync.UsuarioPorPass("bren@da2.gmail", "123456");
+        var usuario = await AdoAsync.UsuarioPorPassAsync("bren@da2.gmail", "123456");
         
         Assert.NotNull(usuario);
         Assert.Equal(1, usuario.IdUsuario);

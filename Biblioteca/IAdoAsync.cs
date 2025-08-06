@@ -7,13 +7,13 @@ namespace Biblioteca
 {
     public interface IAdoAsync
     {
-    Task AltaUsuario(Usuario usuario);
-    Task AltaCasa (Casa casa);
-    Task AltaConsumo (Consumo consumo);
-    Task AltaHistorialRegistro (HistorialRegistro historialRegistro);
-    Task AltaElectrodomestico (Electrodomestico electrodomestico);
-    Task<Electrodomestico>? ObtenerElectrodomestico (int IdElectrodomestico);
-    Task<Casa>? ObtenerCasa (int IdCasa);
-    Task<Usuario>? UsuarioPorPass (string Correo, string Contrasenia);
+    Task AltaUsuarioAsync(Usuario usuario);
+    Task AltaCasaAsync (Casa casa);
+    Task AltaConsumoAsync (Consumo consumo);
+    Task AltaHistorialRegistroAsync (HistorialRegistro historialRegistro);
+    Task AltaElectrodomesticoAsync (Electrodomestico electrodomestico);
+    Task<Electrodomestico>? ObtenerElectrodomesticoAsync (int IdElectrodomestico);
+    Task<Casa>? ObtenerCasaAsync (int IdCasa);
+    Task<Usuario>? UsuarioPorPassAsync (string Correo, string Contrasenia);
     }
 }

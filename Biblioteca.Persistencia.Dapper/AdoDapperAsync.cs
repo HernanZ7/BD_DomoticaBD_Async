@@ -33,7 +33,7 @@ namespace Biblioteca.Persistencia.Dapper
 
         public AdoDapperAsync(IDbConnection conexion)
         => _conexion = conexion;
-        public async Task AltaCasa(Casa casa)
+        public async Task AltaCasaAsync(Casa casa)
         {
             var parametros = new DynamicParameters();
             parametros.Add("@unidCasa", direction: ParameterDirection.Output);
@@ -44,7 +44,7 @@ namespace Biblioteca.Persistencia.Dapper
             casa.IdCasa = parametros.Get<int>("@unidCasa");
         }
 
-        public async Task AltaConsumo(Consumo consumo)
+        public async Task AltaConsumoAsync(Consumo consumo)
         {
             var parametros = new DynamicParameters();
             parametros.Add("@unidConsumo", direction: ParameterDirection.Output);
@@ -58,7 +58,7 @@ namespace Biblioteca.Persistencia.Dapper
             consumo.IdConsumo = parametros.Get<int>("@unidConsumo");
         }
 
-        public async Task AltaElectrodomestico(Electrodomestico electrodomestico)
+        public async Task AltaElectrodomesticoAsync(Electrodomestico electrodomestico)
         {
             var parametros = new DynamicParameters();
             parametros.Add("@unidElectrodomestico", direction: ParameterDirection.Output);
@@ -74,7 +74,7 @@ namespace Biblioteca.Persistencia.Dapper
             electrodomestico.IdElectrodomestico = parametros.Get<int>("@unidElectrodomestico");
         }
 
-        public async Task AltaHistorialRegistro(HistorialRegistro historialRegistro)
+        public async Task AltaHistorialRegistroAsync(HistorialRegistro historialRegistro)
         {
             var parametros = new DynamicParameters();
             parametros.Add("@unidElectrodomestico", historialRegistro.IdElectrodomestico);
@@ -83,7 +83,7 @@ namespace Biblioteca.Persistencia.Dapper
             await _conexion.ExecuteAsync("altaHistorialRegistro", parametros, commandType: CommandType.StoredProcedure);
         }
 
-        public async Task AltaUsuario(Usuario usuario)
+        public async Task AltaUsuarioAsync(Usuario usuario)
         {
             var parametros = new DynamicParameters();
             parametros.Add("@unidUsuario", direction: ParameterDirection.Output);
@@ -97,7 +97,7 @@ namespace Biblioteca.Persistencia.Dapper
             usuario.IdUsuario = parametros.Get<int>("@unidUsuario");
         }
 
-        public async Task<Casa>? ObtenerCasa(int idCasa)
+        public async Task<Casa>? ObtenerCasaAsync(int idCasa)
         {
             using (var registro = await _conexion.QueryMultipleAsync(_queryCasa, new { id = idCasa }))
             {
@@ -110,7 +110,7 @@ namespace Biblioteca.Persistencia.Dapper
             }
         }
 
-        public async Task<Electrodomestico>? ObtenerElectrodomestico(int idElectrodomestico)
+        public async Task<Electrodomestico>? ObtenerElectrodomesticoAsync(int idElectrodomestico)
         {
             using (var registro =await _conexion.QueryMultipleAsync(_queryElectrodomestico, new { id = idElectrodomestico }))
             {
@@ -124,7 +124,7 @@ namespace Biblioteca.Persistencia.Dapper
             }
         }
 
-        public async Task<Usuario>? UsuarioPorPass(string Correo, string Contrasenia)
+        public async Task<Usuario>? UsuarioPorPassAsync(string Correo, string Contrasenia)
         {
             var usuario = await _conexion.QueryFirstOrDefaultAsync<Usuario>(_queryUsuario, new {Correo,Contrasenia });
             

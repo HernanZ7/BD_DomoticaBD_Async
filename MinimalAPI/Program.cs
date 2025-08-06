@@ -30,12 +30,17 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 app.MapGet("/electrodomestico/{id}", async (int id,IAdoAsync repo) =>
-    await repo.ObtenerElectrodomestico(id)
+    await repo.ObtenerElectrodomesticoAsync(id)
         is Electrodomestico electrodomestico
             ? Results.Ok(electrodomestico)
             : Results.NotFound());
 
-app.MapGet("")
+app.MapGet("/electrodomestico", async (IAdoAsync repo ) =>
+    await repo.ObtenerElectrodomesticoAsync());
 
+app.MapPost("/NuevoUsuario", async (Usuario usuario, IAdoAsync repo) =>
+{
+    await repo.AltaUsuarioAsync(usuario);
 
-app.Run();
+    return Results.Created($"/NuevoUsuario/{usuario.IdUsuario}", usuario);
+});

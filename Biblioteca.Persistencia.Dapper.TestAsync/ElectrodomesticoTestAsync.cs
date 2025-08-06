@@ -16,7 +16,7 @@ public class ElectrodomesticoTest : TestBaseAsync
             Encendido = false,
             Apagado = true
         };
-        await AdoAsync.AltaElectrodomestico(Lavarropa);
+        await AdoAsync.AltaElectrodomesticoAsync(Lavarropa);
 
         Assert.NotEqual(0, Lavarropa.IdElectrodomestico);
         
@@ -25,7 +25,7 @@ public class ElectrodomesticoTest : TestBaseAsync
     [Fact]
     public async Task ObtenerElectrodomesticoOK()
     {
-        var lavarropa = await AdoAsync.ObtenerElectrodomestico(1);  
+        var lavarropa = await AdoAsync.ObtenerElectrodomesticoAsync(1);  
         
         Assert.NotNull(lavarropa);
         Assert.Equal("Lavarropa", lavarropa.Nombre);

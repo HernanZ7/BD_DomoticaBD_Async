@@ -12,7 +12,7 @@ public class CasaTest : TestBaseAsync
             Direccion = "Colibri 111"
         };
 
-        await AdoAsync.AltaCasa(CasaRetiro);
+        await AdoAsync.AltaCasaAsync(CasaRetiro);
 
         Assert.NotEqual(0, CasaRetiro.IdCasa);
     }
@@ -20,7 +20,7 @@ public class CasaTest : TestBaseAsync
     [Fact]
     public async Task ObtenerCasaOK()
     {
-        var Casa = await AdoAsync.ObtenerCasa(2);
+        var Casa = await AdoAsync.ObtenerCasaAsync(2);
         
         Assert.NotNull(Casa);
         Assert.Equal(2, Casa.IdCasa);

@@ -13,7 +13,7 @@ public class HIstorialRegistroTestAsync : TestBaseAsync
             IdElectrodomestico = idElectrodomesticoValido
         };
 
-        await AdoAsync.AltaHistorialRegistro(Martes);
+        await AdoAsync.AltaHistorialRegistroAsync(Martes);
         Assert.NotEqual(0, Martes.IdElectrodomestico);
     }
 }

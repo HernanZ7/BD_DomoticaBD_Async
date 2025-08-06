@@ -16,7 +16,7 @@ public class ConsumoTest : TestBaseAsync
             IdElectrodomestico = 1,
         };
 
-        await AdoAsync.AltaConsumo(Lunes);
+        await AdoAsync.AltaConsumoAsync(Lunes);
 
         Assert.NotEqual(0, Lunes.IdConsumo);
     }
