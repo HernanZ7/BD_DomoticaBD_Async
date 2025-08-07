@@ -7,7 +7,7 @@ namespace Biblioteca.Persistencia.Dapper
 {
     public class AdoDapperAsync : IAdoAsync
     {
-    readonly IDbConnection _conexion;
+        readonly IDbConnection _conexion;
         private readonly string _queryElectrodomestico
         = @"SELECT  *
         FROM    Electrodomestico
@@ -106,15 +106,15 @@ namespace Biblioteca.Persistencia.Dapper
                 {
                     casa.Electros = await registro.ReadAsync<Electrodomestico>();
                 }
-            return casa;
+                return casa;
             }
         }
 
         public async Task<Electrodomestico>? ObtenerElectrodomesticoAsync(int idElectrodomestico)
         {
-            using (var registro =await _conexion.QueryMultipleAsync(_queryElectrodomestico, new { id = idElectrodomestico }))
+            using (var registro = await _conexion.QueryMultipleAsync(_queryElectrodomestico, new { id = idElectrodomestico }))
             {
-                var electrodomestico =await registro.ReadSingleOrDefaultAsync<Electrodomestico>();
+                var electrodomestico = await registro.ReadSingleOrDefaultAsync<Electrodomestico>();
                 if (electrodomestico is not null)
                 {
                     var PasarALista = await registro.ReadAsync<HistorialRegistro>();
@@ -126,9 +126,20 @@ namespace Biblioteca.Persistencia.Dapper
 
         public async Task<Usuario>? UsuarioPorPassAsync(string Correo, string Contrasenia)
         {
-            var usuario = await _conexion.QueryFirstOrDefaultAsync<Usuario>(_queryUsuario, new {Correo,Contrasenia });
-            
+            var usuario = await _conexion.QueryFirstOrDefaultAsync<Usuario>(_queryUsuario, new { Correo, Contrasenia });
+
             return usuario;
+        }
+        public async Task<IEnumerable<Electrodomestico>> ObtenerTodosLosElectrodomesticosAsync()
+        {
+            var sql = "SELECT * FROM Electrodomestico";
+            return await _conexion.QueryAsync<Electrodomestico>(sql);
+        }
+        
+        public async Task<IEnumerable<Casa>> ObtenerTodasLasCasasAsync()
+        {
+            var sql = "SELECT * FROM Casa";
+            return await _conexion.QueryAsync<Casa>(sql);
         }
     }
 }

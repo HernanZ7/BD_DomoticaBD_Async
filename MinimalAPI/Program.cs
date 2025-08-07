@@ -29,18 +29,44 @@ if (app.Environment.IsDevelopment())
     });
     app.MapScalarApiReference();
 }
-app.MapGet("/electrodomestico/{id}", async (int id,IAdoAsync repo) =>
-    await repo.ObtenerElectrodomesticoAsync(id)
-        is Electrodomestico electrodomestico
-            ? Results.Ok(electrodomestico)
-            : Results.NotFound());
-
-app.MapGet("/electrodomestico", async (IAdoAsync repo ) =>
-    await repo.ObtenerElectrodomesticoAsync());
-
-app.MapPost("/NuevoUsuario", async (Usuario usuario, IAdoAsync repo) =>
+app.MapGet("/electrodomestico/{id}", async (int id, IAdoAsync repo) =>
 {
-    await repo.AltaUsuarioAsync(usuario);
-
-    return Results.Created($"/NuevoUsuario/{usuario.IdUsuario}", usuario);
+    var electro = await repo.ObtenerElectrodomesticoAsync(id);
+    return electro is not null ? Results.Ok(electro) : Results.NotFound();
 });
+
+
+app.MapGet("/electrodomestico", async (IAdoAsync repo) =>
+{
+    var lista = await repo.ObtenerTodosLosElectrodomesticosAsync();
+    return Results.Ok(lista);
+});
+
+app.MapPost("/electrodomestico", async (Electrodomestico nuevo, IAdoAsync repo) =>
+{
+    await repo.AltaElectrodomesticoAsync(nuevo);
+    return Results.Created($"/electrodomestico/{nuevo.IdElectrodomestico}", nuevo);
+});
+
+
+
+app.MapGet("/casa/{id}", async (int id, IAdoAsync repo) =>
+{
+    var casa = await repo.ObtenerCasaAsync(id);
+    return casa is not null ? Results.Ok(casa) : Results.NotFound();
+});
+
+
+app.MapGet("/casa", async (IAdoAsync repo) =>
+{
+    var casas = await repo.ObtenerTodasLasCasasAsync();
+    return Results.Ok(casas);
+});
+
+app.MapPost("/casa", async (Casa nuevo, IAdoAsync repo) =>
+{
+    await repo.AltaCasaAsync(nuevo);
+    return Results.Created($"/casa/{nuevo.IdCasa}", nuevo);
+});
+
+app.Run();
