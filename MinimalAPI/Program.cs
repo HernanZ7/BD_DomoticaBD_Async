@@ -3,6 +3,7 @@ using MySqlConnector;
 using Scalar.AspNetCore;
 using Biblioteca;
 using Biblioteca.Persistencia.Dapper;
+using MinimalApi.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,30 @@ app.MapPost("/casa", async (Casa nuevo, IAdoAsync repo) =>
 {
     await repo.AltaCasaAsync(nuevo);
     return Results.Created($"/casa/{nuevo.IdCasa}", nuevo);
+});
+
+
+app.MapPost("/casa/dto", async (CrearCasaRequest request, IAdoAsync repo) =>
+{
+    var nuevaCasa = new Casa { Direccion = request.Direccion };
+    await repo.AltaCasaAsync(nuevaCasa);
+    return Results.Created($"/casa/{nuevaCasa.IdCasa}", nuevaCasa);
+});
+
+app.MapPost("/electrodomestico/dto", async (CrearElectrodomesticoRequest request, IAdoAsync repo) =>
+{
+    var nuevoElectro = new Electrodomestico
+    {
+        IdCasa = request.IdCasa,
+        Nombre = request.Nombre,
+        Tipo = request.Tipo,
+        Ubicacion = request.Ubicacion,
+        Encendido = request.Encendido,
+        Apagado = request.Apagado
+    };
+
+    await repo.AltaElectrodomesticoAsync(nuevoElectro);
+    return Results.Created($"/electrodomestico/{nuevoElectro.IdElectrodomestico}", nuevoElectro);
 });
 
 app.Run();
