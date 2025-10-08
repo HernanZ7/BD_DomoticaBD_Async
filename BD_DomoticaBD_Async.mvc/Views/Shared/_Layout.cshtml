@@ -12,7 +12,7 @@
     <header>
                 <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Perro Peruano</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">IntelHome</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -20,15 +20,15 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item dropdown">
                             <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 Casa
                             </button>
                             <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="GetAll">Listado</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="AltaForm">Crear</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="GetAll">Lista</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -36,8 +36,8 @@
                                 Electrodomestico
                             </button>
                             <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Electrodomestico" asp-action="GetAll">Listado</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Electrodomestico" asp-action="AltaForm">Crear</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Electrodomestico" asp-action="GetAll">Lista</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Electrodomestico" asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -45,8 +45,8 @@
                                 Usuario
                             </button>
                             <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="GetAll">Listado</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="AltaForm">Crear</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="GetAll">Lista</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -62,7 +62,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - BD_DomoticaBD_Async.mvc - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - InteHome Domotica - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

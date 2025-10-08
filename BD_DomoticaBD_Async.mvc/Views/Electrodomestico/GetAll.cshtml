@@ -7,21 +7,40 @@
 <h1>@ViewData["Title"]</h1>
 
 <div>
-    <details open>
-        <summary>Mostrar Electrodomésticos</summary>
-        @foreach(var electrodomestico in Model)
-        {
-            <p>@electrodomestico.IdElectrodomestico</p>
-            <P>@electrodomestico.IdCasa</P>
-            <p>@electrodomestico.Nombre</p>
-            <p>@electrodomestico.Tipo</p>
-            <p>@electrodomestico.Ubicacion</p>
-            <p>@electrodomestico.Encendido</p>
-            <P>@electrodomestico.Apagado</P>
-        }
-    </details>
-    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID Electrodoméstico</th>
+                <th>ID Casa</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Ubicación</th>
+                <th>Encendido</th>
+                <th>Apagado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var electrodomestico in Model)
+            {
+                <tr>
+                    <td>@electrodomestico.IdElectrodomestico</td>
+                    <td>@electrodomestico.IdCasa</td>
+                    <td>@electrodomestico.Nombre</td>
+                    <td>@electrodomestico.Tipo</td>
+                    <td>@electrodomestico.Ubicacion</td>
+                    <td>@electrodomestico.Encendido</td>
+                    <td>@electrodomestico.Apagado</td>
+                    <td>
+                        <!-- Formulario para eliminar el electrodoméstico -->
+                        <form asp-action="Delete" asp-route-id="@electrodomestico.IdElectrodomestico" method="post">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este electrodoméstico?')">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
     <a asp-action="AltaForm">
-        <button type="button">Crear Electrodoméstico</button>
+        <button type="button">Añadir</button>
     </a>
 </div>

@@ -141,10 +141,21 @@ namespace Biblioteca.Persistencia.Dapper
             var sql = "SELECT * FROM Casa";
             return await _conexion.QueryAsync<Casa>(sql);
         }
-                public async Task<IEnumerable<Usuario>> ObtenerTodosLosUsuariosAsync()
+        public async Task<IEnumerable<Usuario>> ObtenerTodosLosUsuariosAsync()
         {
             var sql = "SELECT * FROM Usuario";
             return await _conexion.QueryAsync<Usuario>(sql);
+        }
+        
+        public async Task<bool> EliminarElectrodomesticoAsync(int id)
+        {
+            var sqlHistorialRegistro = "DELETE FROM HistorialRegistro WHERE idElectrodomestico = @IdElectrodomestico";
+            await _conexion.ExecuteAsync(sqlHistorialRegistro, new { IdElectrodomestico = id });
+
+            var sqlElectrodomestico = "DELETE FROM Electrodomestico WHERE idElectrodomestico = @IdElectrodomestico";
+            var result = await _conexion.ExecuteAsync(sqlElectrodomestico, new { IdElectrodomestico = id });
+
+            return result > 0;
         }
     }
 }

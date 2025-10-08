@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Biblioteca;
 using MinimalApi.Dtos;
 
@@ -54,6 +52,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
 
             return View(response);
         }
+
         [HttpGet]
         public IActionResult AltaForm() => View();
 
@@ -61,7 +60,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
         public async Task<IActionResult> AltaForm(Electrodomestico electrodomestico)
         {
             await _repo.AltaElectrodomesticoAsync(electrodomestico);
-            return RedirectToAction("GetAll"); // redirige al listado
+            return RedirectToAction("GetAll"); // Redirige al listado
         }
 
         [HttpPost]
@@ -90,6 +89,21 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             );
 
             return CreatedAtAction(nameof(Get), new { id = nuevoElectro.IdElectrodomestico }, response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var electrodomestico = await _repo.ObtenerElectrodomesticoAsync(id);
+
+            if (electrodomestico == null)
+            {
+                return NotFound();
+            }
+
+            await _repo.EliminarElectrodomesticoAsync(id); 
+
+            return RedirectToAction("GetAll");
         }
     }
 }

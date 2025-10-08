@@ -8,12 +8,15 @@
 
 <div>
     <details open>
-            <summary>Mostrar Casas</summary>
+        
+        <summary>Mostrar Casas</summary>
 
-    @foreach (var casa in Model)
-    {
-        <p>@casa.Direccion</p>
-    }
+            @foreach (var casa in Model)
+            {
+                
+                <p>@casa.Direccion</p>
+            }
+
     </details>
 
     <a asp-action="AltaForm">
