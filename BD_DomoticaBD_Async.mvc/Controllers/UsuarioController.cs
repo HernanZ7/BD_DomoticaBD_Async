@@ -59,7 +59,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             await _repo.AltaUsuarioAsync(usuario);
             return RedirectToAction("GetAll"); // redirige al listado
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> Post(CrearUsuarioRequest request)
         {
@@ -83,6 +83,21 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             );
 
             return CreatedAtAction(nameof(Get), new { correo = nuevoUsuario.Correo }, response);
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var usuario = await _repo.ObtenerTodosLosUsuariosAsync();
+
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            await _repo.EliminarUsuarioAsync(id); 
+
+            return RedirectToAction("GetAll");
         }
     }
 }

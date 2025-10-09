@@ -30,5 +30,20 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             return RedirectToAction("GetAll"); // redirige al listado
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var casa = await _repo.ObtenerCasaAsync(id);
+
+            if (casa == null)
+            {
+                return NotFound();
+            }
+
+            await _repo.EliminarCasaAsync(id);
+
+            return RedirectToAction("GetAll");
+        }
+
     }
 }

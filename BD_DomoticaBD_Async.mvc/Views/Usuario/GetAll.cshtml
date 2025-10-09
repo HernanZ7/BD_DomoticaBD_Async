@@ -1,7 +1,7 @@
 @using MinimalApi.Dtos
 @model List<UsuarioResponse>
 @{
-    ViewData["Title"] = "GetAll";
+    ViewData["Title"] = "Listado de usuarios";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -13,21 +13,25 @@
 <table class="table">
     <thead>
         <tr>
-            <th>IdUsuario</th>
             <th>Correo</th>
             <th>Nombre</th>
             <th>Telefono</th>
         </tr>
     </thead>
     <tbody>
-        @foreach(UsuarioResponse usuario in Model){
-            <tr>
-                <td>@usuario.IdUsuario</td>
-                <td>@usuario.Correo</td>
-                <td>@usuario.Nombre</td>
-                <td>@usuario.Telefono</td>
-            </tr>
-        }
+    @foreach (UsuarioResponse usuario in Model)
+    {
+        <tr>
+            <td>@usuario.Correo</td>
+            <td>@usuario.Nombre</td>
+            <td>@usuario.Telefono</td>
+            <td>
+                <form asp-action="Delete" asp-route-id="@usuario.IdUsuario" method="post">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+    }
     </tbody>
 </table>
 </div>

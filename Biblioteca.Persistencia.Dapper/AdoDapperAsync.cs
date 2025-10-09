@@ -146,14 +146,51 @@ namespace Biblioteca.Persistencia.Dapper
             var sql = "SELECT * FROM Usuario";
             return await _conexion.QueryAsync<Usuario>(sql);
         }
-        
+
+        public async Task<IEnumerable<Consumo>> ObtenerConsumosPorCasaAsync(int idCasa)
+        {
+            var sql = @"SELECT c.*
+                        FROM Consumo c
+                        INNER JOIN Electrodomestico e ON c.idElectrodomestico = e.idElectrodomestico
+                        WHERE e.idCasa = @IdCasa";
+            return await _conexion.QueryAsync<Consumo>(sql, new { IdCasa = idCasa });
+        }
+
         public async Task<bool> EliminarElectrodomesticoAsync(int id)
         {
             var sqlHistorialRegistro = "DELETE FROM HistorialRegistro WHERE idElectrodomestico = @IdElectrodomestico";
             await _conexion.ExecuteAsync(sqlHistorialRegistro, new { IdElectrodomestico = id });
 
+            var sqlConsumo = "DELETE FROM Consumo WHERE idElectrodomestico = @IdElectrodomestico";
+            await _conexion.ExecuteAsync(sqlConsumo, new { IdCasa = id });
+
             var sqlElectrodomestico = "DELETE FROM Electrodomestico WHERE idElectrodomestico = @IdElectrodomestico";
             var result = await _conexion.ExecuteAsync(sqlElectrodomestico, new { IdElectrodomestico = id });
+
+            return result > 0;
+        }
+
+        public async Task<bool> EliminarCasaAsync(int id)
+        {
+            var sqlHistorialRegistro = "DELETE FROM HistorialRegistro WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
+            await _conexion.ExecuteAsync(sqlHistorialRegistro, new { IdCasa = id });
+
+            var sqlConsumo = "DELETE FROM Consumo WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
+            await _conexion.ExecuteAsync(sqlConsumo, new { IdCasa = id });
+
+            var sqlElectrodomestico = "DELETE FROM Electrodomestico WHERE idCasa = @IdCasa";
+            await _conexion.ExecuteAsync(sqlElectrodomestico, new { IdCasa = id });
+
+            var sqlCasa = "DELETE FROM Casa WHERE idCasa = @IdCasa";
+            var result = await _conexion.ExecuteAsync(sqlCasa, new { IdCasa = id });
+
+            return result > 0;
+        }
+
+        public async Task<bool> EliminarUsuarioAsync(int id)
+        {
+            var sqlUsuario = "DELETE FROM Usuario WHERE idUsuario = @IdUsuario";
+            var result = await _conexion.ExecuteAsync(sqlUsuario, new { IdUsuario = id });
 
             return result > 0;
         }

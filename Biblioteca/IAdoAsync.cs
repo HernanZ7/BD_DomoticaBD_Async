@@ -18,7 +18,10 @@ namespace Biblioteca
         Task<IEnumerable<Electrodomestico>> ObtenerTodosLosElectrodomesticosAsync();
         Task<IEnumerable<Casa>> ObtenerTodasLasCasasAsync();
         Task<IEnumerable<Usuario>> ObtenerTodosLosUsuariosAsync();
+        Task<IEnumerable<Consumo>> ObtenerConsumosPorCasaAsync(int idCasa);
         Task<bool> EliminarElectrodomesticoAsync(int id);
+        Task<bool> EliminarCasaAsync(int id);
+        Task<bool> EliminarUsuarioAsync(int id);
 
     }
 }

@@ -1,7 +1,7 @@
 @using MinimalApi.Dtos
 @model List<ElectrodomesticoResponse>
 @{
-    ViewData["Title"] = "GetAll";
+    ViewData["Title"] = "Listado de electrodomesticos";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -13,7 +13,6 @@
     <table class="table">
         <thead>
             <tr>
-                <th>ID Electrodoméstico</th>
                 <th>ID Casa</th>
                 <th>Nombre</th>
                 <th>Tipo</th>
@@ -25,7 +24,6 @@
             @foreach (var electrodomestico in Model)
             {
                 <tr>
-                    <td>@electrodomestico.IdElectrodomestico</td>
                     <td>@electrodomestico.IdCasa</td>
                     <td>@electrodomestico.Nombre</td>
                     <td>@electrodomestico.Tipo</td>
