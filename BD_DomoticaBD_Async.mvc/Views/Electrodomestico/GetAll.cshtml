@@ -7,6 +7,9 @@
 <h1>@ViewData["Title"]</h1>
 
 <div>
+    <a asp-action="AltaForm">
+        <button class="btn btn-primary" type="button">Añadir</button>
+    </a>
     <table class="table">
         <thead>
             <tr>
@@ -16,7 +19,6 @@
                 <th>Tipo</th>
                 <th>Ubicación</th>
                 <th>Encendido</th>
-                <th>Apagado</th>
             </tr>
         </thead>
         <tbody>
@@ -28,10 +30,13 @@
                     <td>@electrodomestico.Nombre</td>
                     <td>@electrodomestico.Tipo</td>
                     <td>@electrodomestico.Ubicacion</td>
-                    <td>@electrodomestico.Encendido</td>
-                    <td>@electrodomestico.Apagado</td>
+                    @if(electrodomestico.Encendido == true){
+                        <td>Si</td>
+                    }
+                    else{
+                        <td>No</td>
+                    }
                     <td>
-                        <!-- Formulario para eliminar el electrodoméstico -->
                         <form asp-action="Delete" asp-route-id="@electrodomestico.IdElectrodomestico" method="post">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este electrodoméstico?')">Eliminar</button>
                         </form>
@@ -40,7 +45,4 @@
             }
         </tbody>
     </table>
-    <a asp-action="AltaForm">
-        <button type="button">Añadir</button>
-    </a>
 </div>

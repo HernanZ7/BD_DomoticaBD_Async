@@ -8,19 +8,20 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
 
-<h1>@ViewData["Title"]</h1>
-
-<form asp-action="AltaForm" method="post">
+<div class="centrado d-flex justify-content-center align-items-center ">
+<form class="formulario gap-3" asp-action="AltaForm" method="post">
+    <h1>@ViewData["Title"]</h1>
     <div asp-validation-summary="All"></div>
     <div>
-        <label asp-for="Nombre">Nombre:</label>
-        <input asp-for="Nombre" />
-        <label asp-for="Correo">Correo:</label>
-        <input asp-for="Correo" />
-        <label asp-for="Contrasenia">Contrasenia:</label>
-        <input asp-for="Contrasenia" />
-        <label asp-for="Telefono">Telefono:</label>
-        <input asp-for="Telefono" />
+        <label class="form-label" asp-for="Nombre">Nombre:</label>
+        <input class="form-control" asp-for="Nombre" />
+        <label class="form-label" asp-for="Correo">Correo:</label>
+        <input  class="form-control" asp-for="Correo" />
+        <label class="form-label" asp-for="Contrasenia">Contrasenia:</label>
+        <input class="form-control" asp-for="Contrasenia" />
+        <label class="form-label" asp-for="Telefono">Telefono:</label>
+        <input class="form-control" asp-for="Telefono" />
     </div>
-    <button type="submit">Guardar</button>
+    <button class="btn btn-primary" type="submit">Guardar</button>
 </form>
+</div>

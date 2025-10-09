@@ -4,13 +4,14 @@
     ViewData["Title"] = "Alta de Casa";
 }
 
-<h1>@ViewData["Title"]</h1>
-
-<form asp-action="AltaForm" method="post">
+<div class="centrado d-flex justify-content-center align-items-center">
+<form class="formulario gap-3" asp-action="AltaForm" method="post">
+    <h1>@ViewData["Title"]</h1>
     <div asp-validation-summary="All"></div>
     <div>
         <label asp-for="Direccion">Dirección:</label>
         <input asp-for="Direccion" />
     </div>
-    <button type="submit">Guardar</button>
+    <button class="btn btn-primary" type="submit">Guardar</button>
 </form>
+</div>

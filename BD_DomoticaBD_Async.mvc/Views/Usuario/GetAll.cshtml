@@ -7,18 +7,28 @@
 <h1>@ViewData["Title"]</h1>
 
 <div>
-    <details open>
-        <summary>Mostrar Usuario</summary>
-    @foreach(var usuario in Model)
-    {
-        <p>@usuario.IdUsuario</p>
-        <p>@usuario.Nombre</P>
-        <p>@usuario.Correo</p>
-        <p>@usuario.Telefono</p>
-    }
-    </details>
     <a asp-action="AltaForm">
-        <button type="button">Crear Usuario</button>
+        <button class="btn btn-primary" type="button">Crear Usuario</button>
     </a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>IdUsuario</th>
+            <th>Correo</th>
+            <th>Nombre</th>
+            <th>Telefono</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(UsuarioResponse usuario in Model){
+            <tr>
+                <td>@usuario.IdUsuario</td>
+                <td>@usuario.Correo</td>
+                <td>@usuario.Nombre</td>
+                <td>@usuario.Telefono</td>
+            </tr>
+        }
+    </tbody>
+</table>
 </div>
 

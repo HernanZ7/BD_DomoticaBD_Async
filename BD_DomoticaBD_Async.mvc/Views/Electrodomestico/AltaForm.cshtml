@@ -4,26 +4,27 @@
     ViewData["Title"] = "Alta de Electrodomestico";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="centrado d-flex justify-content-center align-items-center ">
+    <form class="main-añadir formulario" asp-action="AltaForm" method="post">
+        <h1>@ViewData["Title"]</h1>
+        <div asp-validation-summary="All"></div>
+        <div>
+            <label class="form-label" asp-for="IdCasa">Casa:</label>
+            <input class="form-control" min="1" type="number" asp-for="IdCasa" />
 
-<form asp-action="AltaForm" method="post">
-    <div asp-validation-summary="All"></div>
-    <div>
-        <label asp-for="IdCasa">Casa:</label>
-        <input asp-for="IdCasa" />
+            <label class="form-label" asp-for="Nombre">Nombre:</label>
+            <input class="form-control" asp-for="Nombre" />
 
-        <label asp-for="Nombre">Nombre:</label>
-        <input asp-for="Nombre" />
+            <label class="form-label" asp-for="Tipo">Tipo:</label>
+            <input class="form-control" asp-for="Tipo" />
 
-        <label asp-for="Tipo">Tipo:</label>
-        <input asp-for="Tipo" />
+            <label class="form-label" asp-for="Ubicacion">Ubicacion:</label>
+            <input class="form-control" asp-for="Ubicacion" />
 
-        <label asp-for="Ubicacion">Ubicacion:</label>
-        <input asp-for="Ubicacion" />
+            <label class="mt-2 form-label" type="bool" asp-for="Encendido">Encendido:</label>
+            <input asp-for="Encendido" />
 
-        <label type="bool" asp-for="Encendido">Encendido:</label>
-        <input asp-for="Encendido" />
-
-    </div>
-    <button type="submit">Guardar</button>
-</form>
+        </div>
+        <button class="mt-3 btn btn-primary" type="submit">Guardar</button>
+    </form>
+</div>
