@@ -13,6 +13,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Id Casa</th>
                 <th>Direccion</th>
             </tr>
         </thead>
@@ -20,6 +21,7 @@
             @foreach (var casa in Model)
             {
                 <tr>
+                    <td>@casa.IdCasa</td>
                     <td>@casa.Direccion</td>
                     <td>
                         <form asp-action="Delete" asp-route-id="@casa.IdCasa" method="post">

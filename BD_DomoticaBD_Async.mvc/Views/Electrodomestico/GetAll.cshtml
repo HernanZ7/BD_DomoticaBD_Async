@@ -13,6 +13,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>ID Electrodomestico</th>
                 <th>ID Casa</th>
                 <th>Nombre</th>
                 <th>Tipo</th>
@@ -24,6 +25,7 @@
             @foreach (var electrodomestico in Model)
             {
                 <tr>
+                    <td>@electrodomestico.IdElectrodomestico</td>
                     <td>@electrodomestico.IdCasa</td>
                     <td>@electrodomestico.Nombre</td>
                     <td>@electrodomestico.Tipo</td>

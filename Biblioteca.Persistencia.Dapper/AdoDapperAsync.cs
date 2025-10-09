@@ -162,7 +162,7 @@ namespace Biblioteca.Persistencia.Dapper
             await _conexion.ExecuteAsync(sqlHistorialRegistro, new { IdElectrodomestico = id });
 
             var sqlConsumo = "DELETE FROM Consumo WHERE idElectrodomestico = @IdElectrodomestico";
-            await _conexion.ExecuteAsync(sqlConsumo, new { IdCasa = id });
+            await _conexion.ExecuteAsync(sqlConsumo, new { IdElectrodomestico = id });
 
             var sqlElectrodomestico = "DELETE FROM Electrodomestico WHERE idElectrodomestico = @IdElectrodomestico";
             var result = await _conexion.ExecuteAsync(sqlElectrodomestico, new { IdElectrodomestico = id });
