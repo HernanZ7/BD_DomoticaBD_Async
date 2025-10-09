@@ -54,7 +54,12 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
         }
 
         [HttpGet]
-        public IActionResult AltaForm() => View();
+        public async Task<IActionResult> AltaForm()
+        {
+            var casas = await _repo.ObtenerTodasLasCasasAsync();
+            ViewBag.Casas = casas; // Pasar las casas a la vista
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> AltaForm(Electrodomestico electrodomestico)

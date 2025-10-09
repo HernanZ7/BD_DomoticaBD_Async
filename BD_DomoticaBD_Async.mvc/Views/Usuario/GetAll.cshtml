@@ -1,38 +1,53 @@
-@using MinimalApi.Dtos
-@model List<UsuarioResponse>
+@model List<MinimalApi.Dtos.UsuarioResponse>
+
 @{
     ViewData["Title"] = "Listado de usuarios";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<div>
-    <a asp-action="AltaForm">
-        <button class="btn btn-primary" type="button">Crear Usuario</button>
-    </a>
+<a asp-action="AltaForm">
+    <button class="btn btn-primary" type="button">Crear Usuario</button>
+</a>
+
 <table class="table">
     <thead>
         <tr>
             <th>Correo</th>
             <th>Nombre</th>
-            <th>Telefono</th>
+            <th>Teléfono</th>
+            <th>Casas</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
-    @foreach (UsuarioResponse usuario in Model)
-    {
-        <tr>
-            <td>@usuario.Correo</td>
-            <td>@usuario.Nombre</td>
-            <td>@usuario.Telefono</td>
-            <td>
-                <form asp-action="Delete" asp-route-id="@usuario.IdUsuario" method="post">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">Eliminar</button>
-                </form>
-            </td>
-        </tr>
-    }
+        @foreach (var usuario in Model)
+        {
+            <tr>
+                <td>@usuario.Correo</td>
+                <td>@usuario.Nombre</td>
+                <td>@usuario.Telefono</td>
+                <td>
+                    @if (usuario.Casas != null && usuario.Casas.Any())
+                    {
+                        <ul>
+                            @foreach (var casa in usuario.Casas)
+                            {
+                                <li>@casa.Direccion (Id: @casa.IdCasa)</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sin casas registradas</span>
+                    }
+                </td>
+                <td>
+                    <form asp-action="Delete" asp-route-id="@usuario.IdUsuario" method="post">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
-</div>
-

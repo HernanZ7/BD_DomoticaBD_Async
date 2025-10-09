@@ -144,7 +144,21 @@ namespace Biblioteca.Persistencia.Dapper
         public async Task<IEnumerable<Usuario>> ObtenerTodosLosUsuariosAsync()
         {
             var sql = "SELECT * FROM Usuario";
-            return await _conexion.QueryAsync<Usuario>(sql);
+            var usuarios = await _conexion.QueryAsync<Usuario>(sql);
+
+            foreach (var usuario in usuarios)
+            {
+                var sqlCasas = @"
+                    SELECT c.*
+                    FROM Casa c
+                    INNER JOIN casaUsuario cu ON c.idCasa = cu.idCasa
+                    WHERE cu.idUsuario = @IdUsuario";
+
+                var casas = await _conexion.QueryAsync<Casa>(sqlCasas, new { usuario.IdUsuario });
+                usuario.ListadoCasas = casas.ToList();
+            }
+
+            return usuarios;
         }
 
         public async Task<IEnumerable<Consumo>> ObtenerConsumosPorCasaAsync(int idCasa)
@@ -193,6 +207,12 @@ namespace Biblioteca.Persistencia.Dapper
             var result = await _conexion.ExecuteAsync(sqlUsuario, new { IdUsuario = id });
 
             return result > 0;
+        }
+        
+        public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
+        {
+            var query = "INSERT INTO casaUsuario (IdUsuario, IdCasa) VALUES (@idUsuario, @idCasa)";
+            await _conexion.ExecuteAsync(query, new { idUsuario, idCasa });
         }
     }
 }

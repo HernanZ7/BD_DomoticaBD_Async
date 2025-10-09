@@ -11,6 +11,7 @@ namespace MinimalApi.Dtos
         string Nombre,
         string Correo,
         string Contrasenia,
-        string Telefono
+        string Telefono,
+        List<CasaResponse>? Casas = null
     );
 }

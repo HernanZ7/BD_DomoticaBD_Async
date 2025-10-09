@@ -22,6 +22,7 @@ namespace Biblioteca
         Task<bool> EliminarElectrodomesticoAsync(int id);
         Task<bool> EliminarCasaAsync(int id);
         Task<bool> EliminarUsuarioAsync(int id);
+        Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa);
 
     }
 }
