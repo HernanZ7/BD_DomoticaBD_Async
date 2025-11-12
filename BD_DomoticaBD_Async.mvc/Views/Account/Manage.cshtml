@@ -1,0 +1,43 @@
+@model BD_DomoticaBD_Async.mvc.Models.ManageViewModel
+@{
+    ViewData["Title"] = "Gestionar cuenta";
+}
+
+<div class="centrado d-flex justify-content-center align-items-center">
+    <div class="formulario p-4 shadow rounded" style="width: 100%; max-width: 400px;">
+        <h1 class="text-center mb-4">Gestionar cuenta</h1>
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <form asp-action="Manage" method="post">
+            <input asp-for="IdUsuario" type="hidden" />
+
+            <div class="mb-3">
+                <label asp-for="Nombre" class="form-label">Nombre</label>
+                <input class="form-control" asp-for="Nombre" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Correo" class="form-label">Correo</label>
+                <input class="form-control" asp-for="Correo" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Telefono" class="form-label">Teléfono</label>
+                <input class="form-control" asp-for="Telefono" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
+        </form>
+
+        <hr class="my-4" />
+
+        <form asp-action="DeleteAccount" method="post"
+                onsubmit="return confirm('Al borrar la cuenta se eliminarán todas las casas y electrodomésticos asociados. ¿Desea continuar?');">
+            <button type="submit" class="btn btn-danger w-100">Eliminar Cuenta</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -119,17 +119,25 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var usuario = await _repo.ObtenerTodosLosUsuariosAsync();
+            var loggedId = HttpContext.Session.GetInt32("UserId");
+            if (loggedId != null && loggedId.Value == id)
+            {
+                // No permitir borrar al usuario logueado desde la lista
+                TempData["Error"] = "No puede eliminar la cuenta que está actualmente iniciada. Cierre sesión primero.";
+                return RedirectToAction("GetAll");
+            }
 
-            if (usuario == null)
+            var usuario = await _repo.ObtenerTodosLosUsuariosAsync(); // obtiene todos y luego busca
+            var exists = usuario.Any(u => u.IdUsuario == id);
+            if (!exists)
             {
                 return NotFound();
             }
 
+            // Borrar el usuario (su implementacion en repo elimina dependencias)
             await _repo.EliminarUsuarioAsync(id);
 
             return RedirectToAction("GetAll");
         }
-
     }
 }

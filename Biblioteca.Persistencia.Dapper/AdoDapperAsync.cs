@@ -208,11 +208,22 @@ namespace Biblioteca.Persistencia.Dapper
 
             return result > 0;
         }
-        
+
         public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
         {
             var query = "INSERT INTO casaUsuario (IdUsuario, IdCasa) VALUES (@idUsuario, @idCasa)";
             await _conexion.ExecuteAsync(query, new { idUsuario, idCasa });
+        }
+        
+        public async Task UpdateUsuarioAsync(Usuario usuario)
+        {
+            var sql = @"UPDATE Usuario
+                        SET Nombre = @Nombre,
+                            Correo = @Correo,
+                            Telefono = @Telefono
+                        WHERE idUsuario = @IdUsuario;";
+            // Esto lanzará excepción si Correo ya existe (clave única) — capturarás esto en el controlador.
+            await _conexion.ExecuteAsync(sql, new { Nombre = usuario.Nombre, Correo = usuario.Correo, Telefono = usuario.Telefono, IdUsuario = usuario.IdUsuario });
         }
     }
 }

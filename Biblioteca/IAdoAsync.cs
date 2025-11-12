@@ -15,6 +15,7 @@ namespace Biblioteca
         Task<Electrodomestico?> ObtenerElectrodomesticoAsync(int IdElectrodomestico);
         Task<Casa?> ObtenerCasaAsync(int IdCasa);
         Task<Usuario?> UsuarioPorPassAsync(string Correo, string Contrasenia);
+        Task UpdateUsuarioAsync(Usuario usuario);
         Task<IEnumerable<Electrodomestico>> ObtenerTodosLosElectrodomesticosAsync();
         Task<IEnumerable<Casa>> ObtenerTodasLasCasasAsync();
         Task<IEnumerable<Usuario>> ObtenerTodosLosUsuariosAsync();

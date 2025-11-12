@@ -1,0 +1,48 @@
+@model BD_DomoticaBD_Async.mvc.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="centrado d-flex justify-content-center align-items-center">
+    <form asp-action="Login" method="post" class="formulario">
+        <h1>Iniciar sesión</h1>
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="Correo" class="form-label">Correo</label>
+            <input class="form-control" asp-for="Correo" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Contrasenia" class="form-label">Contraseña</label>
+            <div class="input-group">
+                <input class="form-control" asp-for="Contrasenia" type="password" id="passwordInput" />
+                <button type="button" class="btn btn-outline-secondary" id="togglePassword">Mostrar</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Entrar</button>
+
+        <p class="mt-3 text-center">¿No tenés cuenta?
+            <a asp-controller="Account" asp-action="Register">Registrate</a>
+        </p>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const toggle = document.getElementById('togglePassword');
+        const input = document.getElementById('passwordInput');
+
+        toggle.addEventListener('click', () => {
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = 'Ocultar';
+            } else {
+                input.type = 'password';
+                toggle.textContent = 'Mostrar';
+            }
+        });
+    </script>
+}

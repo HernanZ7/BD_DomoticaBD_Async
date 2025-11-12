@@ -49,6 +49,44 @@
                                 <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
+                        @* Dentro de BD_DomoticaBD_Async.mvc/Views/Shared/_Layout.cshtml *@
+                        @using Microsoft.AspNetCore.Http
+
+                        @{
+                            var userId = Context.Session.GetInt32("UserId");
+                            var userName = Context.Session.GetString("UserName");
+                        }
+
+                        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                            <ul class="navbar-nav flex-grow-1">
+                                <!-- (tu lista de enlaces actual permanece) -->
+                            </ul>
+
+                            <ul class="navbar-nav">
+                                @if (userId != null)
+                                {
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                            @userName
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
+                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Manage">Gestionar</a></li>
+                                            <li>
+                                                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
+                                                    <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
                     </ul>
                 </div>
             </div>

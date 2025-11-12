@@ -1,3 +1,5 @@
+// BD_DomoticaBD_Async.mvc/Program.cs
+
 using System.Data;
 using Biblioteca;
 using Biblioteca.Persistencia.Dapper;
@@ -12,9 +14,18 @@ builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 
 builder.Services.AddScoped<IDbConnection>(sp => new MySqlConnection(connectionString));
-
-//Cada vez que necesite la interfaz, se va a instanciar automaticamente AdoDapper y se va a pasar al metodo de la API
 builder.Services.AddScoped<IAdoAsync, AdoDapperAsync>();
+
+// ---- AÑADIR: sesión ----
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".IntelHome.Session";
+    options.IdleTimeout = TimeSpan.FromHours(8); // ajustar si querés
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+// ---- FIN: sesión ----
 
 var app = builder.Build();
 
@@ -29,6 +40,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// ---- AÑADIR: usar session ----
+app.UseSession();
+// ---- FIN: usar session ----
 
 app.UseAuthorization();
 
