@@ -1,49 +1,109 @@
 using Microsoft.AspNetCore.Mvc;
 using Biblioteca;
+using Biblioteca.Persistencia.Dapper;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace BD_DomoticaBD_Async.mvc.Controllers
 {
     public class CasaController : Controller
     {
-        private readonly IAdoAsync _repo;
+        private readonly IAdoAsync _ado;
 
-        public CasaController(IAdoAsync repo)
+        public CasaController(IAdoAsync ado)
         {
-            _repo = repo;
+            _ado = ado;
         }
 
-        // ✅ Acción para listar todas las casas en una vista
+        // ✅ Listar todas las casas del usuario logueado
         public async Task<IActionResult> GetAll()
         {
-            var casas = await _repo.ObtenerTodasLasCasasAsync();
-            return View(casas); // Vista: Views/Casa/GetAll.cshtml
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var casas = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+
+            // Recalcular consumo total desde electrodomésticos
+            foreach (var casa in casas)
+            {
+                casa.ConsumoTotal = await _ado.ObtenerConsumoTotalCasaAsync(casa.IdCasa);
+            }
+
+            ViewBag.UserName = HttpContext.Session.GetString("UserName");
+            return View(casas);
         }
 
-        // ✅ Vista de formulario de invitación
+        // ✅ Formulario de alta
         [HttpGet]
-        public IActionResult AltaForm() => View();
+        public IActionResult AltaForm()
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
 
+            return View();
+        }
+
+        // ✅ Alta de nueva casa
         [HttpPost]
         public async Task<IActionResult> AltaForm(Casa casa)
         {
-            await _repo.AltaCasaAsync(casa);
-            return RedirectToAction("GetAll"); // redirige al listado
-        }
+            int? userId = HttpContext.Session.GetInt32("UserId");
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var casa = await _repo.ObtenerCasaAsync(id);
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
 
-            if (casa == null)
+            if (!ModelState.IsValid)
+                return View(casa);
+
+            // Validar dirección única por usuario
+            var casasUsuario = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+            bool direccionDuplicada = casasUsuario.Any(c => c.Direccion == casa.Direccion);
+
+            if (direccionDuplicada)
             {
-                return NotFound();
+                ViewBag.Error = "Ya existe una casa con esa dirección.";
+                return View(casa);
             }
 
-            await _repo.EliminarCasaAsync(id);
+            await _ado.AltaCasaAsync(casa);
+            await _ado.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
 
             return RedirectToAction("GetAll");
         }
 
+        // ✅ Eliminar una casa
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            await _ado.EliminarCasaAsync(id);
+            return RedirectToAction("GetAll");
+        }
+
+        // ✅ Eliminar todas las casas del usuario
+        [HttpPost]
+        public async Task<IActionResult> DeleteAll()
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            var casas = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+
+            foreach (var casa in casas)
+                await _ado.EliminarCasaAsync(casa.IdCasa);
+
+            return RedirectToAction("GetAll");
+        }
     }
 }

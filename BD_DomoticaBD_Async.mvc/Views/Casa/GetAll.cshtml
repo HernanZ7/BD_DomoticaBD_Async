@@ -1,35 +1,62 @@
 @model List<Biblioteca.Casa>
-
 @{
-    ViewData["Title"] = "Listado de casas";
+    ViewData["Title"] = "Mis Casas";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">🏠 Mis Casas</h2>
 
-<div>
-    <a asp-action="AltaForm">
-        <button class="btn btn-primary" type="button">Añadir</button>
-    </a>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id Casa</th>
-                <th>Direccion</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var casa in Model)
-            {
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            No tenés casas registradas todavía.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped text-center align-middle">
+            <thead class="table-dark">
                 <tr>
-                    <td>@casa.IdCasa</td>
-                    <td>@casa.Direccion</td>
-                    <td>
-                        <form asp-action="Delete" asp-route-id="@casa.IdCasa" method="post">
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar esta casa?')">Eliminar</button>
-                        </form>
-                    </td>
+                    <th>Dirección</th>
+                    <th>Consumo Total (kWh)</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var casa in Model)
+                {
+                    <tr>
+                        <td>@casa.Direccion</td>
+                        <td>@(casa.ConsumoTotal.ToString("0.##"))</td>
+                        <td>
+                            <form asp-action="Delete" asp-route-id="@casa.IdCasa" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('¿Desea eliminar esta casa?')">
+                                    🗑️ Eliminar
+                                </button>
+                            </form>
+                            <a asp-controller="Electrodomestico" asp-action="GetAll" asp-route-idCasa="@casa.IdCasa"
+                                class="btn btn-primary btn-sm">
+                                🔍 Detalles
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="d-flex justify-content-between mt-4">
+        <a asp-action="AltaForm" class="btn btn-success">➕ Añadir Casa</a>
+
+        @if (Model != null && Model.Any())
+        {
+            <form asp-action="DeleteAll" method="post">
+                <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('¿Desea eliminar todas las casas?')">
+                    🗑️ Eliminar Todas
+                </button>
+            </form>
+        }
+    </div>
 </div>

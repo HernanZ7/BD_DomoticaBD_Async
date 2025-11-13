@@ -24,6 +24,13 @@ namespace Biblioteca
         Task<bool> EliminarCasaAsync(int id);
         Task<bool> EliminarUsuarioAsync(int id);
         Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa);
+        Task<List<Casa>> ObtenerCasasPorUsuarioAsync(int idUsuario);
+        Task<double> ObtenerConsumoTotalCasaAsync(int idCasa);
+        Task<List<Electrodomestico>> ObtenerElectrosPorCasaAsync(int idCasa);
+        Task<double> ObtenerConsumoTotalElectroAsync(int idElectrodomestico);
+        Task<int> EliminarElectrosPorCasaAsync(int idCasa);
+        Task<IEnumerable<Consumo>> ObtenerConsumosPorElectrodomesticoAsync(int idElectrodomestico);
+        Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion);
 
     }
 }

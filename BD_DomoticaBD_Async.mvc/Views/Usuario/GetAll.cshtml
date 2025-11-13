@@ -19,8 +19,8 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Correo</th>
             <th>Nombre</th>
+            <th>Correo</th>
             <th>Teléfono</th>
             <th>Casas</th>
             <th></th>
@@ -30,8 +30,8 @@
         @foreach (var usuario in Model)
         {
             <tr>
-                <td>@usuario.Correo</td>
                 <td>@usuario.Nombre</td>
+                <td>@usuario.Correo</td>
                 <td>@usuario.Telefono</td>
                 <td>
                     @if (usuario.Casas != null && usuario.Casas.Any())
@@ -39,7 +39,7 @@
                         <ul>
                             @foreach (var casa in usuario.Casas)
                             {
-                                <li>@casa.Direccion (Id: @casa.IdCasa)</li>
+                                <li>@casa.Direccion</li>
                             }
                         </ul>
                     }

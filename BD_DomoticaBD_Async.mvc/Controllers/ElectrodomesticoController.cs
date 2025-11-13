@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Biblioteca;
-using MinimalApi.Dtos;
+using BD_DomoticaBD_Async.mvc.Models;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace BD_DomoticaBD_Async.mvc.Controllers
 {
@@ -17,98 +17,156 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             _repo = repo;
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        // GET: /Electrodomestico/GetAll?idCasa=XX
+        public async Task<IActionResult> GetAll(int idCasa)
         {
-            var electro = await _repo.ObtenerElectrodomesticoAsync(id);
-            if (electro is null) return NotFound();
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
 
-            var response = new ElectrodomesticoResponse(
-                electro.IdElectrodomestico,
-                electro.IdCasa,
-                electro.Nombre,
-                electro.Tipo,
-                electro.Ubicacion,
-                electro.Encendido,
-                electro.Apagado
-            );
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == idCasa))
+                return Forbid();
 
-            return Ok(response);
-        }
+            var electros = await _repo.ObtenerElectrosPorCasaAsync(idCasa);
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var lista = await _repo.ObtenerTodosLosElectrodomesticosAsync();
-            var response = lista.Select(e => new ElectrodomesticoResponse(
-                e.IdElectrodomestico,
-                e.IdCasa,
-                e.Nombre,
-                e.Tipo,
-                e.Ubicacion,
-                e.Encendido,
-                e.Apagado
-            )).ToList();
-
-            return View(response);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AltaForm()
-        {
-            var casas = await _repo.ObtenerTodasLasCasasAsync();
-            ViewBag.Casas = casas; // Pasar las casas a la vista
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AltaForm(Electrodomestico electrodomestico)
-        {
-            await _repo.AltaElectrodomesticoAsync(electrodomestico);
-            return RedirectToAction("GetAll"); // Redirige al listado
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Post(CrearElectrodomesticoRequest request)
-        {
-            var nuevoElectro = new Electrodomestico
+            var vm = new List<ElectrodomesticoViewModel>();
+            foreach (var e in electros)
             {
-                IdCasa = request.IdCasa,
-                Nombre = request.Nombre,
-                Tipo = request.Tipo,
-                Ubicacion = request.Ubicacion,
-                Encendido = request.Encendido,
-                Apagado = request.Apagado
-            };
+                var consumo = await _repo.ObtenerConsumoTotalElectroAsync(e.IdElectrodomestico);
+                vm.Add(new ElectrodomesticoViewModel
+                {
+                    IdElectrodomestico = e.IdElectrodomestico,
+                    IdCasa = e.IdCasa,
+                    Nombre = e.Nombre,
+                    Tipo = e.Tipo,
+                    Ubicacion = e.Ubicacion,
+                    Encendido = e.Encendido,
+                    Apagado = e.Apagado,
+                    ConsumoTotal = consumo
+                });
+            }
 
-            await _repo.AltaElectrodomesticoAsync(nuevoElectro);
+            ViewBag.IdCasa = idCasa;
+            ViewBag.UserName = HttpContext.Session.GetString("UserName");
 
-            var response = new ElectrodomesticoResponse(
-                nuevoElectro.IdElectrodomestico,
-                nuevoElectro.IdCasa,
-                nuevoElectro.Nombre,
-                nuevoElectro.Tipo,
-                nuevoElectro.Ubicacion,
-                nuevoElectro.Encendido,
-                nuevoElectro.Apagado
-            );
-
-            return CreatedAtAction(nameof(Get), new { id = nuevoElectro.IdElectrodomestico }, response);
+            return View(vm);
         }
 
+        // GET: /Electrodomestico/AltaForm?idCasa=XX
+        [HttpGet]
+        public async Task<IActionResult> AltaForm(int idCasa)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == idCasa))
+                return Forbid();
+
+            var model = new Biblioteca.Electrodomestico { IdCasa = idCasa };
+            ViewBag.IdCasa = idCasa;
+            return View(model);
+        }
+
+        // POST: /Electrodomestico/AltaForm
+        [HttpPost]
+        public async Task<IActionResult> AltaForm(Biblioteca.Electrodomestico electro)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
+                return Forbid();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IdCasa = electro.IdCasa;
+                return View(electro);
+            }
+
+            // NUEVO: validar Ubicación única por casa para mostrar mensaje amigable
+            if (!string.IsNullOrWhiteSpace(electro.Ubicacion))
+            {
+                var existe = await _repo.UbicacionExisteEnCasaAsync(electro.IdCasa, electro.Ubicacion);
+                if (existe)
+                {
+                    ModelState.AddModelError(nameof(electro.Ubicacion), "La ubicación ya está en uso en esta casa.");
+                    ViewBag.IdCasa = electro.IdCasa;
+                    return View(electro);
+                }
+            }
+
+            await _repo.AltaElectrodomesticoAsync(electro);
+
+            return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
+        }
+
+        // POST: /Electrodomestico/Delete?id=XX
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var electrodomestico = await _repo.ObtenerElectrodomesticoAsync(id);
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
 
-            if (electrodomestico == null)
+            var electro = await _repo.ObtenerElectrodomesticoAsync(id);
+            if (electro == null) return NotFound();
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
+                return Forbid();
+
+            await _repo.EliminarElectrodomesticoAsync(id);
+            return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
+        }
+
+        // POST: /Electrodomestico/DeleteAll?idCasa=XX
+        [HttpPost]
+        public async Task<IActionResult> DeleteAll(int idCasa)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == idCasa))
+                return Forbid();
+
+            await _repo.EliminarElectrosPorCasaAsync(idCasa);
+
+            return RedirectToAction("GetAll", new { idCasa });
+        }
+
+        // GET: /Electrodomestico/Detalle?id=XX
+        public async Task<IActionResult> Detalle(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var electro = await _repo.ObtenerElectrodomesticoAsync(id);
+            if (electro == null) return NotFound();
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
+                return Forbid();
+
+            var vm = new ElectrodomesticoViewModel
             {
-                return NotFound();
-            }
+                IdElectrodomestico = electro.IdElectrodomestico,
+                IdCasa = electro.IdCasa,
+                Nombre = electro.Nombre,
+                Tipo = electro.Tipo,
+                Ubicacion = electro.Ubicacion,
+                Encendido = electro.Encendido,
+                Apagado = electro.Apagado,
+                ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico)
+            };
 
-            await _repo.EliminarElectrodomesticoAsync(id); 
+            var consumos = await _repo.ObtenerConsumosPorElectrodomesticoAsync(electro.IdElectrodomestico);
+            vm.Consumos = consumos?.ToList() ?? new List<Biblioteca.Consumo>();
 
-            return RedirectToAction("GetAll");
+            ViewBag.IdCasa = electro.IdCasa;
+
+            return View(vm);
         }
     }
 }

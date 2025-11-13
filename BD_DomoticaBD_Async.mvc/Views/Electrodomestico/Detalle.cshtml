@@ -1,0 +1,50 @@
+@model BD_DomoticaBD_Async.mvc.Models.ElectrodomesticoViewModel
+@{
+    ViewData["Title"] = "Detalle Electrodoméstico";
+    var idCasa = Model?.IdCasa;
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Detalle: @Model.Nombre</h2>
+
+    <div class="card w-75 mx-auto">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Nombre (@Model.Tipo)</h5>
+            <p class="card-text"><strong>Ubicación:</strong> @Model.Ubicacion</p>
+            <p class="card-text"><strong>Encendido:</strong> @(Model.Encendido ? "Sí" : "No")</p>
+            <p class="card-text"><strong>Consumo total (kWh):</strong> @Model.ConsumoTotal</p>
+        </div>
+    </div>
+
+    <h4 class="mt-4 text-center">Historial de consumos</h4>
+    @if (Model.Consumos == null || !Model.Consumos.Any())
+    {
+        <div class="alert alert-info text-center">No hay registros de consumo.</div>
+    }
+    else
+    {
+        <table class="table table-striped w-75 mx-auto">
+            <thead>
+                <tr>
+                    <th>Fecha Inicio</th>
+                    <th>Duración</th>
+                    <th>Consumo (kWh)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Consumos)
+                {
+                    <tr>
+                        <td>@c.Inicio.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@c.Duracion</td>
+                        <td>@c.ConsumoTotal</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="text-center mt-4">
+        <a asp-action="GetAll" asp-route-idCasa="@idCasa" class="btn btn-secondary">🔙 Volver</a>
+    </div>
+</div>

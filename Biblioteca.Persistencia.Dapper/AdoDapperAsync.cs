@@ -186,20 +186,33 @@ namespace Biblioteca.Persistencia.Dapper
 
         public async Task<bool> EliminarCasaAsync(int id)
         {
-            var sqlHistorialRegistro = "DELETE FROM HistorialRegistro WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
+            // 1) Borrar relaciones casaUsuario
+            var sqlCasaUsuario = "DELETE FROM casaUsuario WHERE idCasa = @IdCasa";
+            await _conexion.ExecuteAsync(sqlCasaUsuario, new { IdCasa = id });
+
+            // 2) Borrar historial
+            var sqlHistorialRegistro = @"DELETE FROM HistorialRegistro 
+                                        WHERE idElectrodomestico IN 
+                                            (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
             await _conexion.ExecuteAsync(sqlHistorialRegistro, new { IdCasa = id });
 
-            var sqlConsumo = "DELETE FROM Consumo WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
+            // 3) Borrar consumos
+            var sqlConsumo = @"DELETE FROM Consumo 
+                            WHERE idElectrodomestico IN 
+                                    (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa)";
             await _conexion.ExecuteAsync(sqlConsumo, new { IdCasa = id });
 
+            // 4) Borrar electrodomésticos
             var sqlElectrodomestico = "DELETE FROM Electrodomestico WHERE idCasa = @IdCasa";
             await _conexion.ExecuteAsync(sqlElectrodomestico, new { IdCasa = id });
 
+            // 5) Borrar la casa
             var sqlCasa = "DELETE FROM Casa WHERE idCasa = @IdCasa";
             var result = await _conexion.ExecuteAsync(sqlCasa, new { IdCasa = id });
 
             return result > 0;
         }
+
 
         public async Task<bool> EliminarUsuarioAsync(int id)
         {
@@ -214,7 +227,7 @@ namespace Biblioteca.Persistencia.Dapper
             var query = "INSERT INTO casaUsuario (IdUsuario, IdCasa) VALUES (@idUsuario, @idCasa)";
             await _conexion.ExecuteAsync(query, new { idUsuario, idCasa });
         }
-        
+
         public async Task UpdateUsuarioAsync(Usuario usuario)
         {
             var sql = @"UPDATE Usuario
@@ -225,5 +238,95 @@ namespace Biblioteca.Persistencia.Dapper
             // Esto lanzará excepción si Correo ya existe (clave única) — capturarás esto en el controlador.
             await _conexion.ExecuteAsync(sql, new { Nombre = usuario.Nombre, Correo = usuario.Correo, Telefono = usuario.Telefono, IdUsuario = usuario.IdUsuario });
         }
+
+        public async Task<List<Casa>> ObtenerCasasPorUsuarioAsync(int idUsuario)
+        {
+            var sql = @"
+                SELECT 
+                    c.idCasa AS IdCasa,
+                    c.Direccion,
+                    COALESCE(SUM(co.consumoTotal), 0) AS ConsumoTotal
+                FROM Casa c
+                INNER JOIN casaUsuario cu ON c.idCasa = cu.idCasa
+                LEFT JOIN Electrodomestico e ON e.idCasa = c.idCasa
+                LEFT JOIN Consumo co ON co.idElectrodomestico = e.idElectrodomestico
+                WHERE cu.idUsuario = @idUsuario
+                GROUP BY c.idCasa, c.Direccion;
+            ";
+
+            var casas = (await _conexion.QueryAsync<Casa>(sql, new { idUsuario })).ToList();
+
+            foreach (var casa in casas)
+            {
+                if (double.IsNaN(casa.ConsumoTotal))
+                    casa.ConsumoTotal = 0.0;
+            }
+
+            return casas;
+        }
+
+        public async Task<double> ObtenerConsumoTotalCasaAsync(int idCasa)
+        {
+            string sql = @"
+                SELECT COALESCE(SUM(c.ConsumoTotal), 0)
+                FROM Consumo c
+                INNER JOIN Electrodomestico e ON c.idElectrodomestico = e.idElectrodomestico
+                WHERE e.idCasa = @idCasa;
+            ";
+
+            return await _conexion.ExecuteScalarAsync<double>(sql, new { idCasa });
+        }
+
+        // Obtiene todos los electrodomésticos que pertenecen a una casa
+        public async Task<List<Electrodomestico>> ObtenerElectrosPorCasaAsync(int idCasa)
+        {
+            var sql = @"SELECT * FROM Electrodomestico WHERE idCasa = @idCasa";
+            var list = (await _conexion.QueryAsync<Electrodomestico>(sql, new { idCasa })).ToList();
+            return list;
+        }
+
+        // Suma el consumo (tabla Consumo) para un electrodoméstico dado
+        public async Task<double> ObtenerConsumoTotalElectroAsync(int idElectrodomestico)
+        {
+            var sql = @"SELECT COALESCE(SUM(consumoTotal), 0) FROM Consumo WHERE idElectrodomestico = @idElectro";
+            var result = await _conexion.ExecuteScalarAsync<double>(sql, new { idElectro = idElectrodomestico });
+            return result;
+        }
+
+        // Elimina todos los electrodomésticos (y sus consumos/historiales) de una casa
+        public async Task<int> EliminarElectrosPorCasaAsync(int idCasa)
+        {
+            // Borrar HistorialRegistro para todos los electros de la casa
+            var sqlHist = @"DELETE FROM HistorialRegistro 
+                            WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @idCasa)";
+            await _conexion.ExecuteAsync(sqlHist, new { idCasa });
+
+            // Borrar consumos
+            var sqlCons = @"DELETE FROM Consumo 
+                            WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @idCasa)";
+            await _conexion.ExecuteAsync(sqlCons, new { idCasa });
+
+            // Borrar electrodomésticos y devolver cantidad afectada
+            var sqlElectro = @"DELETE FROM Electrodomestico WHERE idCasa = @idCasa";
+            var deleted = await _conexion.ExecuteAsync(sqlElectro, new { idCasa });
+
+            return deleted; // cantidad de filas afectadas en Electrodomestico
+        }
+
+        // Obtener consumos (tabla Consumo) por idElectrodomestico
+        public async Task<IEnumerable<Consumo>> ObtenerConsumosPorElectrodomesticoAsync(int idElectrodomestico)
+        {
+            var sql = @"SELECT * FROM Consumo WHERE idElectrodomestico = @idElectro ORDER BY inicio DESC";
+            return await _conexion.QueryAsync<Consumo>(sql, new { idElectro = idElectrodomestico });
+        }
+
+                public async Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion)
+        {
+            var sql = @"SELECT COUNT(1) FROM Electrodomestico 
+                        WHERE idCasa = @idCasa AND Ubicacion = @ubicacion";
+            var count = await _conexion.ExecuteScalarAsync<int>(sql, new { idCasa, ubicacion });
+            return count > 0;
+        }
+        
     }
 }

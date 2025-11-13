@@ -1,48 +1,56 @@
-@using MinimalApi.Dtos
-@model List<ElectrodomesticoResponse>
+@model List<BD_DomoticaBD_Async.mvc.Models.ElectrodomesticoViewModel>
 @{
-    ViewData["Title"] = "Listado de electrodomesticos";
+    ViewData["Title"] = "Electrodomesticos";
+    var idCasa = ViewBag.IdCasa;
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">🔌 Electrodomésticos</h2>
 
-<div>
-    <a asp-action="AltaForm">
-        <button class="btn btn-primary" type="button">Añadir</button>
-    </a>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID Electrodomestico</th>
-                <th>ID Casa</th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Ubicación</th>
-                <th>Encendido</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var electrodomestico in Model)
-            {
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">No hay electrodomésticos en esta casa.</div>
+    }
+    else
+    {
+        <table class="table table-striped text-center">
+            <thead class="table-dark">
                 <tr>
-                    <td>@electrodomestico.IdElectrodomestico</td>
-                    <td>@electrodomestico.IdCasa</td>
-                    <td>@electrodomestico.Nombre</td>
-                    <td>@electrodomestico.Tipo</td>
-                    <td>@electrodomestico.Ubicacion</td>
-                    @if(electrodomestico.Encendido == true){
-                        <td>Si</td>
-                    }
-                    else{
-                        <td>No</td>
-                    }
-                    <td>
-                        <form asp-action="Delete" asp-route-id="@electrodomestico.IdElectrodomestico" method="post">
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este electrodoméstico?')">Eliminar</button>
-                        </form>
-                    </td>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Ubicación</th>
+                    <th>Encendido</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.Nombre</td>
+                        <td>@e.Tipo</td>
+                        <td>@e.Ubicacion</td>
+                        <td>@(e.Encendido ? "Sí" : "No")</td>
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@e.IdElectrodomestico" class="btn btn-sm btn-secondary">Detalle</a>
+
+                            <form asp-action="Delete" method="post" asp-route-id="@e.IdElectrodomestico" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Desea eliminar este electrodoméstico?')">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="d-flex justify-content-between mt-3">
+        <a asp-action="AltaForm" asp-route-idCasa="@idCasa" class="btn btn-success">➕ Añadir</a>
+
+        <form asp-action="DeleteAll" method="post" asp-route-idCasa="@idCasa" onsubmit="return confirm('¿Desea eliminar todos los electrodomésticos de esta casa?');">
+            <button type="submit" class="btn btn-outline-danger">🗑️ Eliminar Todos</button>
+        </form>
+
+        <a asp-controller="Casa" asp-action="GetAll" class="btn btn-secondary">🔙 Volver a Casas</a>
+    </div>
 </div>

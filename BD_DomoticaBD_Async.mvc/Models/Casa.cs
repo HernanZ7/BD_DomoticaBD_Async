@@ -9,5 +9,6 @@ namespace BD_DomoticaBD_Async.mvc.Models
     {
         public int IdCasa { get; set; }
         public string Direccion { get; set; } = "";
+        public double ConsumoTotal { get; set; }
     }
 }

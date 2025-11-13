@@ -1,17 +1,26 @@
 @model Biblioteca.Casa
-
 @{
-    ViewData["Title"] = "Agregar nueva casa";
+    ViewData["Title"] = "Añadir Casa";
 }
 
-<div class="centrado d-flex justify-content-center align-items-center">
-<form class="formulario gap-3" asp-action="AltaForm" method="post">
-    <h1>@ViewData["Title"]</h1>
-    <div asp-validation-summary="All"></div>
-    <div>
-        <label asp-for="Direccion">Dirección:</label>
-        <input asp-for="Direccion" />
-    </div>
-    <button class="btn btn-primary" type="submit">Guardar</button>
-</form>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">➕ Añadir Casa</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger text-center">@ViewBag.Error</div>
+    }
+
+    <form asp-action="AltaForm" method="post" class="w-50 mx-auto">
+        <div class="mb-3">
+            <label class="form-label">Dirección</label>
+            <input asp-for="Direccion" class="form-control" required />
+            <span asp-validation-for="Direccion" class="text-danger"></span>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success px-4">Guardar</button>
+            <a asp-action="GetAll" class="btn btn-secondary px-4 ms-2">Cancelar</a>
+        </div>
+    </form>
 </div>
