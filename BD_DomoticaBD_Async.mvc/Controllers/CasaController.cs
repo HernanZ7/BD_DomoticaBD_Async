@@ -105,5 +105,19 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
 
             return RedirectToAction("GetAll");
         }
+        public async Task<IActionResult> Edit(int idCasa)
+        {
+            var casa = await _ado.ObtenerCasaAsync(idCasa);
+            return View(casa);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Edit(Casa casa)
+        {
+            if (!ModelState.IsValid)
+                return View(casa);
+
+            await _ado.ActualizarCasaAsync(casa);
+            return RedirectToAction("Index");
+        }
     }
 }

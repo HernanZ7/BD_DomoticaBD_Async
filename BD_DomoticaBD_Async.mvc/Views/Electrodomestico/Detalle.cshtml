@@ -10,11 +10,20 @@
     <div class="card w-75 mx-auto">
         <div class="card-body">
             <h5 class="card-title">@Model.Nombre (@Model.Tipo)</h5>
+            
             <p class="card-text"><strong>Ubicación:</strong> @Model.Ubicacion</p>
             <p class="card-text"><strong>Encendido:</strong> @(Model.Encendido ? "Sí" : "No")</p>
             <p class="card-text"><strong>Consumo total (kWh):</strong> @Model.ConsumoTotal</p>
+
+            <p><strong>Inicio:</strong> @(Model.Inicio.HasValue ? Model.Inicio.Value.ToString("yyyy-MM-dd HH:mm:ss") : "N/A")</p>
+            
+            <p><strong>Duración:</strong> 
+                <span id="duracion">@((Model.Inicio.HasValue) ? "" : "00:00:00")</span>
+            </p>
+
         </div>
     </div>
+
 
     <h4 class="mt-4 text-center">Historial de consumos</h4>
     @if (Model.Consumos == null || !Model.Consumos.Any())

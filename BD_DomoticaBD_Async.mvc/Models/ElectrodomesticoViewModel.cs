@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Biblioteca;
 
 namespace BD_DomoticaBD_Async.mvc.Models
 {
@@ -13,10 +14,14 @@ namespace BD_DomoticaBD_Async.mvc.Models
         public bool Encendido { get; set; }
         public bool Apagado { get; set; }
 
-        // Datos calculados para UI
-        public double ConsumoTotal { get; set; } = 0.0;
+        // Consumptions
+        // ConsumoTotal acumulado (kWh)
+        public double ConsumoTotal { get; set; }
 
-        // Historial simple (opcional)
-        public List<Biblioteca.Consumo> Consumos { get; set; } = new List<Biblioteca.Consumo>();
+        // Lista histórica de consumos (desde la tabla Consumo)
+        public List<Consumo> Consumos { get; set; } = new();
+
+        // Momento de inicio actual (si está encendido). Nullable por si no hay sesión activa.
+        public DateTime? Inicio { get; set; }
     }
 }

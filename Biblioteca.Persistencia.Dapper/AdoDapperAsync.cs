@@ -320,13 +320,43 @@ namespace Biblioteca.Persistencia.Dapper
             return await _conexion.QueryAsync<Consumo>(sql, new { idElectro = idElectrodomestico });
         }
 
-                public async Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion)
+        public async Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion)
         {
             var sql = @"SELECT COUNT(1) FROM Electrodomestico 
                         WHERE idCasa = @idCasa AND Ubicacion = @ubicacion";
             var count = await _conexion.ExecuteScalarAsync<int>(sql, new { idCasa, ubicacion });
             return count > 0;
         }
-        
+
+        public async Task ActualizarEstadoElectrodomesticoAsync(int idElectrodomestico, bool encendido)
+        {
+            string query = @"UPDATE Electrodomestico 
+                            SET encendido = @encendido 
+                            WHERE idElectrodomestico = @idElectrodomestico";
+
+            await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido });
+        }
+
+        public async Task ActualizarCasaAsync(Casa casa)
+        {
+            string query = @"UPDATE Casa 
+                            SET direccion = @Direccion 
+                            WHERE idCasa = @IdCasa";
+
+            await _conexion.ExecuteAsync(query, casa);
+        }
+
+        public async Task ActualizarElectrodomesticoAsync(Electrodomestico e)
+        {
+            string q = @"UPDATE Electrodomestico SET 
+                            nombre = @Nombre,
+                            tipo = @Tipo,
+                            ubicacion = @Ubicacion,
+                            encendido = @Encendido
+                        WHERE idElectrodomestico = @IdElectrodomestico";
+
+            await _conexion.ExecuteAsync(q, e);
+        }
+
     }
 }

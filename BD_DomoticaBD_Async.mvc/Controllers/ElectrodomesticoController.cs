@@ -168,5 +168,45 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
 
             return View(vm);
         }
+
+        public async Task<IActionResult> Edit(int idElectrodomestico)
+        {
+            var e = await _repo.ObtenerElectrodomesticoAsync(idElectrodomestico);
+            return View(e);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Biblioteca.Electrodomestico e)
+        {
+            if (!ModelState.IsValid)
+                return View(e);
+
+            await _repo.ActualizarElectrodomesticoAsync(e);
+            return RedirectToAction("Index", new { idCasa = e.IdCasa });
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> CambiarEstado(int idElectrodomestico, bool encendido)
+        {
+            // validación de sesión (opcional pero recomendable)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            // Autorizar que el electro pertenezca al usuario (si implementaste ObtenerCasasPorUsuarioAsync)
+            var electro = await _repo.ObtenerElectrodomesticoAsync(idElectrodomestico);
+            if (electro == null) return NotFound();
+
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
+                return Forbid();
+
+            // Actualizar estado en BD (debes tener este método en IAdoAsync / AdoDapperAsync)
+            await _repo.ActualizarEstadoElectrodomesticoAsync(idElectrodomestico, encendido);
+
+            // Si querés: al apagar, registrar consumo / historial -> lo agregamos luego.
+            return Ok();
+        }
+
+
     }
 }
