@@ -5,6 +5,8 @@ using Biblioteca;
 using BD_DomoticaBD_Async.mvc.Models;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using BD_DomoticaBD_Async.mvc.Models;
+
 
 namespace BD_DomoticaBD_Async.mvc.Controllers
 {
@@ -169,22 +171,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             return View(vm);
         }
 
-        public async Task<IActionResult> Edit(int idElectrodomestico)
-        {
-            var e = await _repo.ObtenerElectrodomesticoAsync(idElectrodomestico);
-            return View(e);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(Biblioteca.Electrodomestico e)
-        {
-            if (!ModelState.IsValid)
-                return View(e);
-
-            await _repo.ActualizarElectrodomesticoAsync(e);
-            return RedirectToAction("Index", new { idCasa = e.IdCasa });
-        }
-        
         [HttpPost]
         public async Task<IActionResult> CambiarEstado(int idElectrodomestico, bool encendido)
         {
@@ -206,6 +192,68 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             // Si querés: al apagar, registrar consumo / historial -> lo agregamos luego.
             return Ok();
         }
+        
+        [HttpPost]
+        public async Task<IActionResult> ToggleEncendido([FromBody] ToggleEncendidoDto data)
+        {
+            var electro = await _repo.ObtenerElectrodomesticoAsync(data.idElectrodomestico);
+            if (electro == null) return NotFound();
+
+            if (data.encendido && !electro.Encendido)
+            {
+                electro.Encendido = true;
+                electro.Inicio = DateTime.Now;
+
+                await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, true);
+                await _repo.InsertarInicioHistorialAsync(electro.IdElectrodomestico, electro.Inicio.Value);
+            }
+            else if (!data.encendido && electro.Encendido)
+            {
+                electro.Encendido = false;
+
+                var fin = DateTime.Now;
+                var duracion = fin - electro.Inicio.Value;
+                float consumo = (float)(duracion.TotalHours * electro.PotenciaKW);
+
+                electro.ConsumoTotal += consumo;
+
+                await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, false);
+                await _repo.CerrarHistorialAsync(electro.IdElectrodomestico, duracion, consumo);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Toggle(int id)
+        {
+            var electro = await _repo.ObtenerElectrodomesticoAsync(id);
+
+            if (electro == null)
+                return NotFound();
+
+            if (!electro.Encendido)
+            {
+                // ENCENDER
+                electro.Encendido = true;
+                electro.Apagado = false;
+
+                await _repo.ActualizarElectrodomesticoAsync(electro);
+                await _repo.CrearRegistroConsumoAsync(id, DateTime.Now);
+            }
+            else
+            {
+                // APAGAR
+                electro.Encendido = false;
+                electro.Apagado = true;
+
+                await _repo.ActualizarElectrodomesticoAsync(electro);
+                await _repo.FinalizarRegistroConsumoAsync(id, DateTime.Now);
+            }
+
+            return RedirectToAction("GetAll");
+        }
+        
 
 
     }

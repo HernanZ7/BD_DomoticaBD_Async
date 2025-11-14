@@ -331,32 +331,92 @@ namespace Biblioteca.Persistencia.Dapper
         public async Task ActualizarEstadoElectrodomesticoAsync(int idElectrodomestico, bool encendido)
         {
             string query = @"UPDATE Electrodomestico 
-                            SET encendido = @encendido 
+                            SET Encendido = @encendido 
                             WHERE idElectrodomestico = @idElectrodomestico";
 
             await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido });
         }
 
-        public async Task ActualizarCasaAsync(Casa casa)
+        public async Task ActualizarEstadoAsync(Electrodomestico e)
         {
-            string query = @"UPDATE Casa 
-                            SET direccion = @Direccion 
-                            WHERE idCasa = @IdCasa";
+            string sql = @"UPDATE Electrodomestico
+                        SET Encendido = @Encendido,
+                            Inicio = @Inicio,
+                            ConsumoTotal = @ConsumoTotal
+                        WHERE IdElectrodomestico = @IdElectrodomestico";
 
-            await _conexion.ExecuteAsync(query, casa);
+            await _conexion.ExecuteAsync(sql, e);
         }
 
-        public async Task ActualizarElectrodomesticoAsync(Electrodomestico e)
+        public async Task InsertarInicioHistorialAsync(int idElectro, DateTime inicio)
         {
-            string q = @"UPDATE Electrodomestico SET 
-                            nombre = @Nombre,
-                            tipo = @Tipo,
-                            ubicacion = @Ubicacion,
-                            encendido = @Encendido
-                        WHERE idElectrodomestico = @IdElectrodomestico";
+            string sql = @"INSERT INTO HistorialRegistro (IdElectrodomestico, Inicio)
+                        VALUES (@idElectro, @inicio)";
 
-            await _conexion.ExecuteAsync(q, e);
+            await _conexion.ExecuteAsync(sql, new { idElectro, inicio });
         }
+        
+        public async Task CerrarHistorialAsync(int idElectro, TimeSpan duracion, float consumo)
+        {
+            string sql = @"
+                UPDATE HistorialRegistro
+                SET Duracion = @duracion, ConsumoTotal = @consumo
+                WHERE IdElectrodomestico = @idElectro
+                ORDER BY IdHistorial DESC
+                LIMIT 1";
+
+            await _conexion.ExecuteAsync(sql, new { idElectro, duracion, consumo });
+        }
+
+        public async Task CrearRegistroConsumoAsync(int idElectro, DateTime inicio)
+        {
+            string sql = @"
+                INSERT INTO Consumo (idElectrodomestico, inicio, duracion, consumoTotal)
+                VALUES (@idElectro, @inicio, '00:00:00', 0)";
+            await _conexion.ExecuteAsync(sql, new { idElectro, inicio });
+        }
+
+        public async Task<Consumo?> ObtenerConsumoActivoAsync(int idElectro)
+        {
+            string sql = @"
+                SELECT * 
+                FROM Consumo 
+                WHERE idElectrodomestico = @idElectro
+                ORDER BY idConsumo DESC
+                LIMIT 1";
+
+            return await _conexion.QueryFirstOrDefaultAsync<Consumo>(sql, new { idElectro });
+        }
+
+        public async Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin)
+        {
+            string sql = @"
+                UPDATE Consumo
+                SET duracion = TIMEDIFF(@fin, inicio),
+                    consumoTotal = TIME_TO_SEC(TIMEDIFF(@fin, inicio)) / 3600
+                WHERE idElectrodomestico = @idElectro
+                ORDER BY idConsumo DESC
+                LIMIT 1";
+
+            await _conexion.ExecuteAsync(sql, new { idElectro, fin });
+        }
+
+        public async Task ActualizarElectrodomesticoAsync(Electrodomestico electro)
+        {
+            string sql = @"
+                UPDATE Electrodomestico SET
+                    Nombre = @Nombre,
+                    Tipo = @Tipo,
+                    Ubicacion = @Ubicacion,
+                    Encendido = @Encendido,
+                    Apagado = @Apagado
+                WHERE idElectrodomestico = @IdElectrodomestico;
+            ";
+
+            await _conexion.ExecuteAsync(sql, electro);
+        }
+        
+
 
     }
 }

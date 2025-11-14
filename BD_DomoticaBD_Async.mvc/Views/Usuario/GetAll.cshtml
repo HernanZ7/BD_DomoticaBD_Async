@@ -6,10 +6,6 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<a asp-action="AltaForm">
-    <button class="btn btn-primary" type="button">Crear Usuario</button>
-</a>
-
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-warning">@TempData["Error"]</div>

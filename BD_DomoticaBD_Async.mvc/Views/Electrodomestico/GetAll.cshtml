@@ -30,7 +30,13 @@
                         <td>@e.Nombre</td>
                         <td>@e.Tipo</td>
                         <td>@e.Ubicacion</td>
-                        <td>@(e.Encendido ? "Sí" : "No")</td>
+                        <td>
+                            <input type="checkbox"
+                                class="toggleEncendido"
+                                data-id="@e.IdElectrodomestico"
+                                @(e.Encendido ? "checked" : "") />
+                        </td>
+
                         <td>
                             <a asp-action="Detalle" asp-route-id="@e.IdElectrodomestico" class="btn btn-sm btn-secondary">Detalle</a>
 
@@ -47,26 +53,19 @@
     @section Scripts
     {
     <script>
-        document.querySelectorAll(".toggleEncendido").forEach(function (chk) {
-            chk.addEventListener("change", async function () {
-                const id = this.dataset.id;
-                const encendido = this.checked ? "true" : "false";
+        document.querySelectorAll(".toggleEncendido").forEach(chk => {
+            chk.addEventListener("change", async () => {
+                const id = chk.dataset.id;
+                const encendido = chk.checked;
 
-                const form = new FormData();
-                form.append("idElectrodomestico", id);
-                form.append("encendido", encendido);
+                await fetch("/Electrodomestico/ToggleEncendido", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idElectrodomestico: parseInt(id), encendido: encendido })
+                });
 
-                try {
-                    await fetch('/Electrodomestico/CambiarEstado', {
-                        method: 'POST',
-                        body: form
-                    });
-                } catch (err) {
-                    console.error("Error al cambiar estado", err);
-                    alert("No se pudo cambiar el estado. Reintente.");
-                    // revertir visualmente si falla
-                    this.checked = !this.checked;
-                }
+                // Opcional: refrescar consumos o recargar la vista
+                location.reload();
             });
         });
     </script>

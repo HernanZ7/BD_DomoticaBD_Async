@@ -57,3 +57,28 @@
         <a asp-action="GetAll" asp-route-idCasa="@idCasa" class="btn btn-secondary">🔙 Volver</a>
     </div>
 </div>
+
+<script>
+(function() {
+    var inicioIso = "@(Model.Inicio.HasValue ? Model.Inicio.Value.ToString("o") : "")";
+
+    if (inicioIso) {
+        const start = new Date(inicioIso);
+
+        setInterval(() => {
+            const now = new Date();
+            const diffMs = now - start;
+
+            if (diffMs < 0) return; // seguridad
+
+            const diff = new Date(diffMs);
+
+            const h = String(diff.getUTCHours()).padStart(2, "0");
+            const m = String(diff.getUTCMinutes()).padStart(2, "0");
+            const s = String(diff.getUTCSeconds()).padStart(2, "0");
+
+            document.getElementById("duracion").textContent = `${h}:${m}:${s}`;
+        }, 1000);
+    }
+})();
+</script>

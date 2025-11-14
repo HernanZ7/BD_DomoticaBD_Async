@@ -32,8 +32,14 @@ namespace Biblioteca
         Task<IEnumerable<Consumo>> ObtenerConsumosPorElectrodomesticoAsync(int idElectrodomestico);
         Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion);
         Task ActualizarEstadoElectrodomesticoAsync(int idElectrodomestico, bool encendido);
-        Task ActualizarCasaAsync(Casa casa);
         Task ActualizarElectrodomesticoAsync(Electrodomestico e);
+        Task ActualizarEstadoAsync(Electrodomestico e);
+        Task InsertarInicioHistorialAsync(int idElectro, DateTime inicio);
+        Task CerrarHistorialAsync(int idElectro, TimeSpan duracion, float consumo);
+        Task CrearRegistroConsumoAsync(int idElectro, DateTime inicio);
+        Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin);
+        Task<Consumo?> ObtenerConsumoActivoAsync(int idElectro);
+
 
     }
 }

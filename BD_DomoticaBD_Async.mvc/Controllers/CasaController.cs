@@ -8,11 +8,11 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
 {
     public class CasaController : Controller
     {
-        private readonly IAdoAsync _ado;
+        private readonly IAdoAsync _repo;
 
-        public CasaController(IAdoAsync ado)
+        public CasaController(IAdoAsync repo)
         {
-            _ado = ado;
+            _repo = repo;
         }
 
         // ✅ Listar todas las casas del usuario logueado
@@ -25,12 +25,12 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var casas = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+            var casas = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
 
             // Recalcular consumo total desde electrodomésticos
             foreach (var casa in casas)
             {
-                casa.ConsumoTotal = await _ado.ObtenerConsumoTotalCasaAsync(casa.IdCasa);
+                casa.ConsumoTotal = await _repo.ObtenerConsumoTotalCasaAsync(casa.IdCasa);
             }
 
             ViewBag.UserName = HttpContext.Session.GetString("UserName");
@@ -61,7 +61,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 return View(casa);
 
             // Validar dirección única por usuario
-            var casasUsuario = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
             bool direccionDuplicada = casasUsuario.Any(c => c.Direccion == casa.Direccion);
 
             if (direccionDuplicada)
@@ -70,8 +70,8 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 return View(casa);
             }
 
-            await _ado.AltaCasaAsync(casa);
-            await _ado.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
+            await _repo.AltaCasaAsync(casa);
+            await _repo.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
 
             return RedirectToAction("GetAll");
         }
@@ -85,7 +85,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            await _ado.EliminarCasaAsync(id);
+            await _repo.EliminarCasaAsync(id);
             return RedirectToAction("GetAll");
         }
 
@@ -98,26 +98,12 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            var casas = await _ado.ObtenerCasasPorUsuarioAsync(userId.Value);
+            var casas = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
 
             foreach (var casa in casas)
-                await _ado.EliminarCasaAsync(casa.IdCasa);
+                await _repo.EliminarCasaAsync(casa.IdCasa);
 
             return RedirectToAction("GetAll");
-        }
-        public async Task<IActionResult> Edit(int idCasa)
-        {
-            var casa = await _ado.ObtenerCasaAsync(idCasa);
-            return View(casa);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Edit(Casa casa)
-        {
-            if (!ModelState.IsValid)
-                return View(casa);
-
-            await _ado.ActualizarCasaAsync(casa);
-            return RedirectToAction("Index");
         }
     }
 }
