@@ -30,7 +30,6 @@ namespace Biblioteca
         Task<double> ObtenerConsumoTotalElectroAsync(int idElectrodomestico);
         Task<int> EliminarElectrosPorCasaAsync(int idCasa);
         Task<IEnumerable<Consumo>> ObtenerConsumosPorElectrodomesticoAsync(int idElectrodomestico);
-        Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion);
         Task ActualizarEstadoElectrodomesticoAsync(int idElectrodomestico, bool encendido);
         Task ActualizarElectrodomesticoAsync(Electrodomestico e);
         Task ActualizarEstadoAsync(Electrodomestico e);

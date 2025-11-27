@@ -5,8 +5,7 @@ using Biblioteca;
 using BD_DomoticaBD_Async.mvc.Models;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using BD_DomoticaBD_Async.mvc.Models;
-
+using System;
 
 namespace BD_DomoticaBD_Async.mvc.Controllers
 {
@@ -36,7 +35,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             {
                 var consumo = await _repo.ObtenerConsumoTotalElectroAsync(e.IdElectrodomestico);
 
-                // Obtener consumo activo (ultima fila en Consumo). Si existe, usamos su Inicio para mostrar duración en detalle.
+                // Obtener consumo activo únicamente si hay uno (filtrado en el repo)
                 var consumoActivo = await _repo.ObtenerConsumoActivoAsync(e.IdElectrodomestico);
 
                 vm.Add(new ElectrodomesticoViewModel
@@ -90,18 +89,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             {
                 ViewBag.IdCasa = electro.IdCasa;
                 return View(electro);
-            }
-
-            // NUEVO: validar Ubicación única por casa para mostrar mensaje amigable
-            if (!string.IsNullOrWhiteSpace(electro.Ubicacion))
-            {
-                var existe = await _repo.UbicacionExisteEnCasaAsync(electro.IdCasa, electro.Ubicacion);
-                if (existe)
-                {
-                    ModelState.AddModelError(nameof(electro.Ubicacion), "La ubicación ya está en uso en esta casa.");
-                    ViewBag.IdCasa = electro.IdCasa;
-                    return View(electro);
-                }
             }
 
             await _repo.AltaElectrodomesticoAsync(electro);
@@ -168,11 +155,10 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico)
             };
 
-            // Consumptions history
             var consumos = await _repo.ObtenerConsumosPorElectrodomesticoAsync(electro.IdElectrodomestico);
             vm.Consumos = consumos?.ToList() ?? new List<Biblioteca.Consumo>();
 
-            // Si hay un registro activo en Consumo, mostrar inicio para el cronómetro
+            // Si existe un consumo ACTIVO (duracion='00:00:00' / consumoTotal = 0), lo consideramos inicio actual
             var consumoActivo = await _repo.ObtenerConsumoActivoAsync(electro.IdElectrodomestico);
             vm.Inicio = consumoActivo?.Inicio;
 
@@ -181,28 +167,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             return View(vm);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CambiarEstado(int idElectrodomestico, bool encendido)
-        {
-            // validación de sesión (opcional pero recomendable)
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return RedirectToAction("Login", "Account");
-
-            // Autorizar que el electro pertenezca al usuario (si implementaste ObtenerCasasPorUsuarioAsync)
-            var electro = await _repo.ObtenerElectrodomesticoAsync(idElectrodomestico);
-            if (electro == null) return NotFound();
-
-            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
-            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
-                return Forbid();
-
-            // Actualizar estado en BD (debes tener este método en IAdoAsync / AdoDapperAsync)
-            await _repo.ActualizarEstadoElectrodomesticoAsync(idElectrodomestico, encendido);
-
-            // Si querés: al apagar, registrar consumo / historial -> lo agregamos luego.
-            return Ok();
-        }
-        
         [HttpPost]
         public async Task<IActionResult> ToggleEncendido([FromBody] ToggleEncendidoDto data)
         {
@@ -218,20 +182,27 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
 
             if (data.encendido && !electro.Encendido)
             {
-                // ENCENDER: marcar en Electrodomestico y crear registro en Consumo
+                // ENCENDER: actualizar estado y crear registro en Consumo
                 await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, true);
                 await _repo.CrearRegistroConsumoAsync(electro.IdElectrodomestico, DateTime.Now);
+
+                // (Opcional) registrar timestamp en HistorialRegistro si quieres mantener log de eventos
+                // await _repo.InsertarInicioHistorialAsync(electro.IdElectrodomestico, DateTime.Now);
             }
             else if (!data.encendido && electro.Encendido)
             {
-                // APAGAR: marcar en Electrodomestico y finalizar el registro en Consumo
+                // APAGAR: actualizar estado y finalizar registro en Consumo
                 await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, false);
                 await _repo.FinalizarRegistroConsumoAsync(electro.IdElectrodomestico, DateTime.Now);
+
+                // (Opcional) insertar marca de apagado en HistorialRegistro
+                // await _repo.InsertarInicioHistorialAsync(electro.IdElectrodomestico, DateTime.Now);
             }
 
             return Ok();
         }
 
+        // (Opcional) Toggle que redirige (mantengo para compatibilidad)
         [HttpPost]
         public async Task<IActionResult> Toggle(int id)
         {
@@ -259,10 +230,7 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 await _repo.FinalizarRegistroConsumoAsync(id, DateTime.Now);
             }
 
-            return RedirectToAction("GetAll");
+            return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
         }
-        
-
-
     }
 }

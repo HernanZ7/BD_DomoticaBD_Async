@@ -1,7 +1,9 @@
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
-
+using System.Linq;
+using System.Collections.Generic;
+using System;
 
 namespace Biblioteca.Persistencia.Dapper
 {
@@ -320,21 +322,16 @@ namespace Biblioteca.Persistencia.Dapper
             return await _conexion.QueryAsync<Consumo>(sql, new { idElectro = idElectrodomestico });
         }
 
-        public async Task<bool> UbicacionExisteEnCasaAsync(int idCasa, string ubicacion)
-        {
-            var sql = @"SELECT COUNT(1) FROM Electrodomestico 
-                        WHERE idCasa = @idCasa AND Ubicacion = @ubicacion";
-            var count = await _conexion.ExecuteScalarAsync<int>(sql, new { idCasa, ubicacion });
-            return count > 0;
-        }
-
         public async Task ActualizarEstadoElectrodomesticoAsync(int idElectrodomestico, bool encendido)
         {
+            // Si encendido == true -> Encendido = 1, Apagado = 0
+            // Si encendido == false -> Encendido = 0, Apagado = 1
             string query = @"UPDATE Electrodomestico 
-                            SET Encendido = @encendido 
+                            SET Encendido = @encendido, Apagado = @apagado
                             WHERE idElectrodomestico = @idElectrodomestico";
 
-            await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido });
+            var apagado = !encendido;
+            await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido, apagado });
         }
 
         public async Task ActualizarEstadoAsync(Electrodomestico e)
@@ -350,7 +347,7 @@ namespace Biblioteca.Persistencia.Dapper
 
         public async Task InsertarInicioHistorialAsync(int idElectro, DateTime inicio)
         {
-            string sql = @"INSERT INTO HistorialRegistro (IdElectrodomestico, Inicio)
+            string sql = @"INSERT INTO HistorialRegistro (idElectrodomestico, fechaHoraRegistro)
                         VALUES (@idElectro, @inicio)";
 
             await _conexion.ExecuteAsync(sql, new { idElectro, inicio });
@@ -370,6 +367,7 @@ namespace Biblioteca.Persistencia.Dapper
                 SELECT * 
                 FROM Consumo 
                 WHERE idElectrodomestico = @idElectro
+                AND (duracion = '00:00:00' OR consumoTotal = 0)
                 ORDER BY idConsumo DESC
                 LIMIT 1";
 
@@ -402,9 +400,6 @@ namespace Biblioteca.Persistencia.Dapper
             ";
 
             await _conexion.ExecuteAsync(sql, electro);
-        }
-        
-
-
+        }        
     }
 }

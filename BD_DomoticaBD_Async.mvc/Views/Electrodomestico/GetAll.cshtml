@@ -72,7 +72,7 @@
                         return;
                     }
 
-                    // Actualizar texto y atributo sin recargar
+                    // Actualizar texto y atributo localmente
                     btn.textContent = wantedState ? "Si" : "No";
                     btn.setAttribute("aria-pressed", wantedState ? "true" : "false");
                 } catch (ex) {
