@@ -35,6 +35,10 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             foreach (var e in electros)
             {
                 var consumo = await _repo.ObtenerConsumoTotalElectroAsync(e.IdElectrodomestico);
+
+                // Obtener consumo activo (ultima fila en Consumo). Si existe, usamos su Inicio para mostrar duración en detalle.
+                var consumoActivo = await _repo.ObtenerConsumoActivoAsync(e.IdElectrodomestico);
+
                 vm.Add(new ElectrodomesticoViewModel
                 {
                     IdElectrodomestico = e.IdElectrodomestico,
@@ -44,7 +48,8 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                     Ubicacion = e.Ubicacion,
                     Encendido = e.Encendido,
                     Apagado = e.Apagado,
-                    ConsumoTotal = consumo
+                    ConsumoTotal = consumo,
+                    Inicio = consumoActivo?.Inicio
                 });
             }
 
@@ -163,8 +168,13 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico)
             };
 
+            // Consumptions history
             var consumos = await _repo.ObtenerConsumosPorElectrodomesticoAsync(electro.IdElectrodomestico);
             vm.Consumos = consumos?.ToList() ?? new List<Biblioteca.Consumo>();
+
+            // Si hay un registro activo en Consumo, mostrar inicio para el cronómetro
+            var consumoActivo = await _repo.ObtenerConsumoActivoAsync(electro.IdElectrodomestico);
+            vm.Inicio = consumoActivo?.Inicio;
 
             ViewBag.IdCasa = electro.IdCasa;
 
@@ -196,29 +206,27 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleEncendido([FromBody] ToggleEncendidoDto data)
         {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Unauthorized();
+
             var electro = await _repo.ObtenerElectrodomesticoAsync(data.idElectrodomestico);
             if (electro == null) return NotFound();
 
+            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (!casasUsuario.Any(c => c.IdCasa == electro.IdCasa))
+                return Forbid();
+
             if (data.encendido && !electro.Encendido)
             {
-                electro.Encendido = true;
-                electro.Inicio = DateTime.Now;
-
+                // ENCENDER: marcar en Electrodomestico y crear registro en Consumo
                 await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, true);
-                await _repo.InsertarInicioHistorialAsync(electro.IdElectrodomestico, electro.Inicio.Value);
+                await _repo.CrearRegistroConsumoAsync(electro.IdElectrodomestico, DateTime.Now);
             }
             else if (!data.encendido && electro.Encendido)
             {
-                electro.Encendido = false;
-
-                var fin = DateTime.Now;
-                var duracion = fin - electro.Inicio.Value;
-                float consumo = (float)(duracion.TotalHours * electro.PotenciaKW);
-
-                electro.ConsumoTotal += consumo;
-
+                // APAGAR: marcar en Electrodomestico y finalizar el registro en Consumo
                 await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, false);
-                await _repo.CerrarHistorialAsync(electro.IdElectrodomestico, duracion, consumo);
+                await _repo.FinalizarRegistroConsumoAsync(electro.IdElectrodomestico, DateTime.Now);
             }
 
             return Ok();

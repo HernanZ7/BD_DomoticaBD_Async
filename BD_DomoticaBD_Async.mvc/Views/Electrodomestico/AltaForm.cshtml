@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4">➕ Añadir Electrodoméstico</h2>
+    <h2 class="text-center mb-4">Añadir Electrodoméstico</h2>
 
     @* Resumen validaciones *@
     <div class="w-50 mx-auto">
@@ -31,11 +31,6 @@
             <label class="form-label">Ubicación</label>
             <input asp-for="Ubicacion" class="form-control" required />
             <span asp-validation-for="Ubicacion" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3 form-check">
-            <input asp-for="Encendido" class="form-check-input" />
-            <label class="form-check-label">Encendido</label>
         </div>
 
         <div class="text-center mt-3">

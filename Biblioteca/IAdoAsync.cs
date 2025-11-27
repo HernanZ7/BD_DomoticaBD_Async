@@ -35,7 +35,6 @@ namespace Biblioteca
         Task ActualizarElectrodomesticoAsync(Electrodomestico e);
         Task ActualizarEstadoAsync(Electrodomestico e);
         Task InsertarInicioHistorialAsync(int idElectro, DateTime inicio);
-        Task CerrarHistorialAsync(int idElectro, TimeSpan duracion, float consumo);
         Task CrearRegistroConsumoAsync(int idElectro, DateTime inicio);
         Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin);
         Task<Consumo?> ObtenerConsumoActivoAsync(int idElectro);

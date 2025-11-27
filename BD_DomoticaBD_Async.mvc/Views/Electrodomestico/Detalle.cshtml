@@ -15,9 +15,11 @@
             <p class="card-text"><strong>Encendido:</strong> @(Model.Encendido ? "Sí" : "No")</p>
             <p class="card-text"><strong>Consumo total (kWh):</strong> @Model.ConsumoTotal</p>
 
-            <p><strong>Inicio:</strong> @(Model.Inicio.HasValue ? Model.Inicio.Value.ToString("yyyy-MM-dd HH:mm:ss") : "N/A")</p>
+            <p><strong>Inicio:</strong>
+                <span id="inicio">@((Model.Inicio.HasValue) ? Model.Inicio.Value.ToString("yyyy-MM-dd HH:mm:ss") : "N/A")</span>
+            </p>
             
-            <p><strong>Duración:</strong> 
+            <p><strong>Duración:</strong>
                 <span id="duracion">@((Model.Inicio.HasValue) ? "" : "00:00:00")</span>
             </p>
 
@@ -54,7 +56,7 @@
     }
 
     <div class="text-center mt-4">
-        <a asp-action="GetAll" asp-route-idCasa="@idCasa" class="btn btn-secondary">🔙 Volver</a>
+        <a asp-action="GetAll" asp-route-idCasa="@idCasa" class="btn btn-secondary">Volver</a>
     </div>
 </div>
 
@@ -65,17 +67,17 @@
     if (inicioIso) {
         const start = new Date(inicioIso);
 
+        // mostrar fecha/hora exacta 'Inicio' (ya lo mostramos en el span #inicio)
+        // Cronómetro en tiempo real:
         setInterval(() => {
             const now = new Date();
             const diffMs = now - start;
+            if (diffMs < 0) return;
 
-            if (diffMs < 0) return; // seguridad
-
-            const diff = new Date(diffMs);
-
-            const h = String(diff.getUTCHours()).padStart(2, "0");
-            const m = String(diff.getUTCMinutes()).padStart(2, "0");
-            const s = String(diff.getUTCSeconds()).padStart(2, "0");
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+            const s = String(totalSeconds % 60).padStart(2, "0");
 
             document.getElementById("duracion").textContent = `${h}:${m}:${s}`;
         }, 1000);

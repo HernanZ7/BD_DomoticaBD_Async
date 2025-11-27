@@ -4,7 +4,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4">🏠 Mis Casas</h2>
+    <h2 class="text-center mb-4">Mis Casas</h2>
 
     @if (Model == null || !Model.Any())
     {
@@ -32,12 +32,12 @@
                             <form asp-action="Delete" asp-route-id="@casa.IdCasa" method="post" style="display:inline">
                                 <button type="submit" class="btn btn-danger btn-sm"
                                         onclick="return confirm('¿Desea eliminar esta casa?')">
-                                    🗑️ Eliminar
+                                    Eliminar
                                 </button>
                             </form>
                             <a asp-controller="Electrodomestico" asp-action="GetAll" asp-route-idCasa="@casa.IdCasa"
                                 class="btn btn-primary btn-sm">
-                                🔍 Detalles
+                                Detalles
                             </a>
                         </td>
                     </tr>
@@ -47,14 +47,14 @@
     }
 
     <div class="d-flex justify-content-between mt-4">
-        <a asp-action="AltaForm" class="btn btn-success">➕ Añadir Casa</a>
+        <a asp-action="AltaForm" class="btn btn-success">Añadir Casa</a>
 
         @if (Model != null && Model.Any())
         {
             <form asp-action="DeleteAll" method="post">
                 <button type="submit" class="btn btn-outline-danger"
                         onclick="return confirm('¿Desea eliminar todas las casas?')">
-                    🗑️ Eliminar Todas
+                    Eliminar Todas
                 </button>
             </form>
         }

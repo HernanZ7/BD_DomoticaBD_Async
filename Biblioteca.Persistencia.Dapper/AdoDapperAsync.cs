@@ -355,18 +355,6 @@ namespace Biblioteca.Persistencia.Dapper
 
             await _conexion.ExecuteAsync(sql, new { idElectro, inicio });
         }
-        
-        public async Task CerrarHistorialAsync(int idElectro, TimeSpan duracion, float consumo)
-        {
-            string sql = @"
-                UPDATE HistorialRegistro
-                SET Duracion = @duracion, ConsumoTotal = @consumo
-                WHERE IdElectrodomestico = @idElectro
-                ORDER BY IdHistorial DESC
-                LIMIT 1";
-
-            await _conexion.ExecuteAsync(sql, new { idElectro, duracion, consumo });
-        }
 
         public async Task CrearRegistroConsumoAsync(int idElectro, DateTime inicio)
         {

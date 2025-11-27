@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4">🔌 Electrodomésticos</h2>
+    <h2 class="text-center mb-4">Electrodomésticos</h2>
 
     @if (Model == null || !Model.Any())
     {
@@ -31,10 +31,11 @@
                         <td>@e.Tipo</td>
                         <td>@e.Ubicacion</td>
                         <td>
-                            <input type="checkbox"
-                                class="toggleEncendido"
-                                data-id="@e.IdElectrodomestico"
-                                @(e.Encendido ? "checked" : "") />
+                            <button class="btn btn-sm toggle-encendido-btn"
+                                    data-id="@e.IdElectrodomestico"
+                                    aria-pressed="@(e.Encendido ? "true" : "false")">
+                                @(e.Encendido ? "Si" : "No")
+                            </button>
                         </td>
 
                         <td>
@@ -53,31 +54,43 @@
     @section Scripts
     {
     <script>
-        document.querySelectorAll(".toggleEncendido").forEach(chk => {
-            chk.addEventListener("change", async () => {
-                const id = chk.dataset.id;
-                const encendido = chk.checked;
+        document.querySelectorAll(".toggle-encendido-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = parseInt(btn.dataset.id);
+                const currentlyOn = btn.getAttribute("aria-pressed") === "true";
+                const wantedState = !currentlyOn;
 
-                await fetch("/Electrodomestico/ToggleEncendido", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ idElectrodomestico: parseInt(id), encendido: encendido })
-                });
+                try {
+                    const res = await fetch("/Electrodomestico/ToggleEncendido", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ idElectrodomestico: id, encendido: wantedState })
+                    });
 
-                // Opcional: refrescar consumos o recargar la vista
-                location.reload();
+                    if (!res.ok) {
+                        alert("Error al cambiar el estado");
+                        return;
+                    }
+
+                    // Actualizar texto y atributo sin recargar
+                    btn.textContent = wantedState ? "Si" : "No";
+                    btn.setAttribute("aria-pressed", wantedState ? "true" : "false");
+                } catch (ex) {
+                    console.error(ex);
+                    alert("No se pudo conectar con el servidor.");
+                }
             });
         });
     </script>
     }
 
     <div class="d-flex justify-content-between mt-3">
-        <a asp-action="AltaForm" asp-route-idCasa="@idCasa" class="btn btn-success">➕ Añadir</a>
+        <a asp-action="AltaForm" asp-route-idCasa="@idCasa" class="btn btn-success">Añadir</a>
 
         <form asp-action="DeleteAll" method="post" asp-route-idCasa="@idCasa" onsubmit="return confirm('¿Desea eliminar todos los electrodomésticos de esta casa?');">
-            <button type="submit" class="btn btn-outline-danger">🗑️ Eliminar Todos</button>
+            <button type="submit" class="btn btn-outline-danger">Eliminar Todos</button>
         </form>
 
-        <a asp-controller="Casa" asp-action="GetAll" class="btn btn-secondary">🔙 Volver a Casas</a>
+        <a asp-controller="Casa" asp-action="GetAll" class="btn btn-secondary">Volver a Casas</a>
     </div>
 </div>
