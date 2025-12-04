@@ -90,7 +90,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 ViewBag.IdCasa = electro.IdCasa;
                 return View(electro);
             }
-
             await _repo.AltaElectrodomesticoAsync(electro);
 
             return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
@@ -152,7 +151,8 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 Ubicacion = electro.Ubicacion,
                 Encendido = electro.Encendido,
                 Apagado = electro.Apagado,
-                ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico)
+                ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico),
+                ConsumoPorHora = electro.ConsumoPorHora
             };
 
             var consumos = await _repo.ObtenerConsumosPorElectrodomesticoAsync(electro.IdElectrodomestico);

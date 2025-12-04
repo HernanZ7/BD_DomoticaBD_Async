@@ -70,6 +70,7 @@ namespace Biblioteca.Persistencia.Dapper
             parametros.Add("@unUbicacion", electrodomestico.Ubicacion);
             parametros.Add("@unEncendido", electrodomestico.Encendido);
             parametros.Add("@unApagado", electrodomestico.Apagado);
+            parametros.Add("@unConsumoPorHora", electrodomestico.ConsumoPorHora);
 
             await _conexion.ExecuteAsync("altaElectrodomestico", parametros);
 
@@ -307,10 +308,24 @@ namespace Biblioteca.Persistencia.Dapper
         // Suma el consumo (tabla Consumo) para un electrodoméstico dado
         public async Task<double> ObtenerConsumoTotalElectroAsync(int idElectrodomestico)
         {
-            var sql = @"SELECT COALESCE(SUM(consumoTotal), 0) FROM Consumo WHERE idElectrodomestico = @idElectro";
-            var result = await _conexion.ExecuteScalarAsync<double>(sql, new { idElectro = idElectrodomestico });
+            // consumoTotal = consumoPorHora * (duracion en horas)
+
+            var sql = @"
+                SELECT 
+                    COALESCE(SUM(e.ConsumoPorHora * TIME_TO_SEC(c.duracion) / 3600), 0)
+                FROM Consumo c
+                INNER JOIN Electrodomestico e using(idElectrodomestico)
+                WHERE idElectrodomestico = @idElectro;
+            ";
+
+            var result = await _conexion.ExecuteScalarAsync<double>(
+                sql, 
+                new { idElectro = idElectrodomestico }
+            );
+
             return result;
         }
+
 
         // Elimina todos los electrodomésticos (y sus consumos/historiales) de una casa
         public async Task<int> EliminarElectrosPorCasaAsync(int idCasa)
@@ -395,9 +410,12 @@ namespace Biblioteca.Persistencia.Dapper
         {
             string sql = @"
                 UPDATE Consumo
-                SET duracion = TIMEDIFF(@fin, inicio),
-                    consumoTotal = TIME_TO_SEC(TIMEDIFF(@fin, inicio)) / 3600
-                WHERE idElectrodomestico = @idElectro
+                JOIN Electrodomestico e ON e.idElectrodomestico = Consumo.idElectrodomestico
+                SET 
+                    duracion = TIMEDIFF(@fin, inicio),
+                    consumoTotal = 
+                        (TIME_TO_SEC(TIMEDIFF(@fin, inicio)) / 3600) * e.ConsumoPorHora
+                WHERE Consumo.idElectrodomestico = @idElectro
                 ORDER BY idConsumo DESC
                 LIMIT 1";
 

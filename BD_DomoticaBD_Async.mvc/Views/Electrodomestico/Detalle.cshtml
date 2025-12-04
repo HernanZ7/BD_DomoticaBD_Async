@@ -13,7 +13,7 @@
             
             <p class="card-text"><strong>Ubicación:</strong> @Model.Ubicacion</p>
             <p class="card-text"><strong>Encendido:</strong> @(Model.Encendido ? "Sí" : "No")</p>
-            <p class="card-text"><strong>Consumo total (kWh):</strong> @Model.ConsumoTotal</p>
+            <p class="card-text" id="consumo"><strong>Consumo total (kWh):</strong> @Model.ConsumoTotal</p>
 
             <p><strong>Inicio:</strong> <span id="inicio">@((Model.Inicio.HasValue) ? Model.Inicio.Value.ToString("yyyy-MM-dd HH:mm:ss") : "N/A")</span></p>
             
@@ -59,29 +59,50 @@
 </div>
 
 <script>
-(function() {
-    // Si Model.Inicio existe, significa que hay un consumo activo (filtrado desde ObtenerConsumoActivoAsync)
+(function () {
+
+    // Inyectamos ConsumoPorHora del modelo al JavaScript.
+    // IMPORTANTE: esto queda como número directamente.
+    const consumoPorHora = @Model.ConsumoPorHora;
+
     var inicioIso = "@(Model.Inicio.HasValue ? Model.Inicio.Value.ToString("o") : "")";
 
     if (inicioIso) {
+
         const start = new Date(inicioIso);
 
         setInterval(() => {
+
             const now = new Date();
             const diffMs = now - start;
 
-            if (diffMs < 0) return; // seguridad
+            if (diffMs < 0) return;
 
+            // Duración en segundos
             const totalSeconds = Math.floor(diffMs / 1000);
             const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
             const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
             const s = String(totalSeconds % 60).padStart(2, "0");
 
+            // Mostrar duración
             document.getElementById("duracion").textContent = `${h}:${m}:${s}`;
+
+            // === CÁLCULO DEL CONSUMO ===
+            // Pasar duración a horas
+            const horas = totalSeconds / 3600.0;
+
+            // Calcular consumo total
+            const consumoTotal = horas * consumoPorHora;
+
+            document.getElementById("consumo").textContent =
+                consumoTotal.toFixed(4) + " kWh";
+
         }, 1000);
     } else {
-        // Si no hay inicio, aseguramos que muestre 00:00:00
+
         document.getElementById("duracion").textContent = "00:00:00";
+        document.getElementById("consumo").textContent = "0.00 kWh";
     }
+
 })();
 </script>

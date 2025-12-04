@@ -12,7 +12,7 @@
 
       // PROPIEDADES NECESARIAS PARA EL CONTROLADOR
       public DateTime? Inicio { get; set; }     // Cuándo se encendió
-      public float PotenciaKW { get; set; }     // Potencia del electro
+      public float ConsumoPorHora { get; set; }
       public float ConsumoTotal { get; set; }   // Suma de consumos
 
       // Mantengo tu lista

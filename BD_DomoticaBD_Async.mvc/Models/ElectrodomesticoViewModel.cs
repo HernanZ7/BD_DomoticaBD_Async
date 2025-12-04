@@ -13,6 +13,7 @@ namespace BD_DomoticaBD_Async.mvc.Models
         public string Ubicacion { get; set; } = "";
         public bool Encendido { get; set; }
         public bool Apagado { get; set; }
+        public float? ConsumoPorHora { get; set; }
 
         // Consumptions
         // ConsumoTotal acumulado (kWh)

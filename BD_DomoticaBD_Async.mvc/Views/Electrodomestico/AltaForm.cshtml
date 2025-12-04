@@ -32,7 +32,11 @@
             <input asp-for="Ubicacion" class="form-control" required />
             <span asp-validation-for="Ubicacion" class="text-danger"></span>
         </div>
-
+        <div class="mb-3">
+            <label class="form-label">Consumo por hora</label>
+            <input asp-for="ConsumoPorHora" class="form-control" required />
+            <span asp-validation-for="ConsumoPorHora" class="text-danger"></span>
+        </div>
         <div class="text-center mt-3">
             <button class="btn btn-success px-4" type="submit">Guardar</button>
             <a asp-action="GetAll" asp-route-idCasa="@idCasa" class="btn btn-secondary ms-2">Cancelar</a>
