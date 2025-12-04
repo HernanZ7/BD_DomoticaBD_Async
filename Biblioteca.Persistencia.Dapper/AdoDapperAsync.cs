@@ -218,10 +218,27 @@ namespace Biblioteca.Persistencia.Dapper
 
         public async Task<bool> EliminarUsuarioAsync(int id)
         {
-            var sqlUsuario = "DELETE FROM Usuario WHERE idUsuario = @IdUsuario";
-            var result = await _conexion.ExecuteAsync(sqlUsuario, new { IdUsuario = id });
+            using var transaction = _conexion.BeginTransaction();
 
-            return result > 0;
+            try
+            {
+                // 1. Eliminar relaciones del usuario en CasaUsuario
+                var sqlCasaUsuario = @"DELETE FROM casausuario WHERE idUsuario = @IdUsuario;";
+                await _conexion.ExecuteAsync(sqlCasaUsuario, new { IdUsuario = id }, transaction);
+
+                // 2. Eliminar el usuario
+                var sqlUsuario = @"DELETE FROM usuario WHERE idUsuario = @IdUsuario;";
+                var rows = await _conexion.ExecuteAsync(sqlUsuario, new { IdUsuario = id }, transaction);
+
+                transaction.Commit();
+
+                return rows > 0;   // true si se eliminó al menos un usuario
+            }
+            catch
+            {
+                transaction.Rollback();
+                return false;
+            }
         }
 
         public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
@@ -400,6 +417,6 @@ namespace Biblioteca.Persistencia.Dapper
             ";
 
             await _conexion.ExecuteAsync(sql, electro);
-        }        
+        }      
     }
 }
