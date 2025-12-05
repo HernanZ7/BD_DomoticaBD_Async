@@ -12,7 +12,6 @@ namespace MinimalApi.Dtos
         string Nombre,
         string Tipo,
         string Ubicacion,
-        bool Encendido,
-        bool Apagado
+        bool Encendido
     );
 }

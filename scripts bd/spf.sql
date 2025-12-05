@@ -50,16 +50,15 @@ CREATE PROCEDURE altaElectrodomestico (OUT unidElectrodomestico INT,
                                     IN unTipo VARCHAR(50),
                                     IN unUbicacion VARCHAR(50),
                                     IN unEncendido BOOL,
-                                    IN unApagado BOOL,
 									IN unConsumoPorHora float)
 BEGIN 
-	INSERT INTO Electrodomestico (idCasa, Nombre, Tipo, Ubicacion, Encendido, Apagado, ConsumoPorHora)
-						VALUES (unidCasa, unNombre,unTipo, unUbicacion, unEncendido, unApagado, unConsumoPorHora);
+	INSERT INTO Electrodomestico (idCasa, Nombre, Tipo, Ubicacion, Encendido,  ConsumoPorHora)
+						VALUES (unidCasa, unNombre,unTipo, unUbicacion, unEncendido, unConsumoPorHora);
 	SET unidElectrodomestico = LAST_INSERT_ID();
 END $$
 
 DELIMITER ;
-CALL AltaElectrodomestico (@idElectrodomestico, @idCasaFlorida, 'Lavarropa', 'Lavarropa', 'Lavadero', FALSE, TRUE, 10.00);
+CALL AltaElectrodomestico (@idElectrodomestico, @idCasaFlorida, 'Lavarropa', 'Lavarropa', 'Lavadero', FALSE, 10.00);
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS altaHistorialRegistro $$

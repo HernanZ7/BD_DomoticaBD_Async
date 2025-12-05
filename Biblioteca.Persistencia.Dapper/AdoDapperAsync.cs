@@ -69,7 +69,6 @@ namespace Biblioteca.Persistencia.Dapper
             parametros.Add("@unTipo", electrodomestico.Tipo);
             parametros.Add("@unUbicacion", electrodomestico.Ubicacion);
             parametros.Add("@unEncendido", electrodomestico.Encendido);
-            parametros.Add("@unApagado", electrodomestico.Apagado);
             parametros.Add("@unConsumoPorHora", electrodomestico.ConsumoPorHora);
 
             await _conexion.ExecuteAsync("altaElectrodomestico", parametros);
@@ -217,30 +216,62 @@ namespace Biblioteca.Persistencia.Dapper
         }
 
 
-        public async Task<bool> EliminarUsuarioAsync(int id)
+public async Task<bool> EliminarUsuarioAsync(int id)
+{
+    try
+    {
+        // 1) Obtener las casas asociadas al usuario (antes de borrar relaciones)
+        var casas = (await _conexion.QueryAsync<int>(
+            "SELECT idCasa FROM casaUsuario WHERE idUsuario = @IdUsuario",
+            new { IdUsuario = id })).ToList();
+
+        // 2) Borrar relaciones del usuario en la tabla intermedia
+        await _conexion.ExecuteAsync(
+            "DELETE FROM casaUsuario WHERE idUsuario = @IdUsuario",
+            new { IdUsuario = id });
+
+        // 3) Para cada casa obtenida, si ya no tiene relaciones con otros usuarios,
+        //    borrar dependencias en el orden correcto y luego la casa.
+        foreach (var idCasa in casas)
         {
-            using var transaction = _conexion.BeginTransaction();
+            var restantes = await _conexion.QueryFirstOrDefaultAsync<int>(
+                "SELECT COUNT(1) FROM casaUsuario WHERE idCasa = @IdCasa",
+                new { IdCasa = idCasa });
 
-            try
-            {
-                // 1. Eliminar relaciones del usuario en CasaUsuario
-                var sqlCasaUsuario = @"DELETE FROM casausuario WHERE idUsuario = @IdUsuario;";
-                await _conexion.ExecuteAsync(sqlCasaUsuario, new { IdUsuario = id }, transaction);
+            if (restantes > 0) 
+                continue; // casa compartida, no borrar
 
-                // 2. Eliminar el usuario
-                var sqlUsuario = @"DELETE FROM usuario WHERE idUsuario = @IdUsuario;";
-                var rows = await _conexion.ExecuteAsync(sqlUsuario, new { IdUsuario = id }, transaction);
+            // Borrar dependencias (orden importante según FKs)
+            await _conexion.ExecuteAsync(
+                "DELETE FROM HistorialRegistro WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
+                new { IdCasa = idCasa });
 
-                transaction.Commit();
+            await _conexion.ExecuteAsync(
+                "DELETE FROM Consumo WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
+                new { IdCasa = idCasa });
 
-                return rows > 0;   // true si se eliminó al menos un usuario
-            }
-            catch
-            {
-                transaction.Rollback();
-                return false;
-            }
+            await _conexion.ExecuteAsync(
+                "DELETE FROM Electrodomestico WHERE idCasa = @IdCasa;",
+                new { IdCasa = idCasa });
+
+            await _conexion.ExecuteAsync(
+                "DELETE FROM Casa WHERE idCasa = @IdCasa;",
+                new { IdCasa = idCasa });
         }
+
+        // 4) Borrar el usuario
+        var rows = await _conexion.ExecuteAsync(
+            "DELETE FROM Usuario WHERE idUsuario = @IdUsuario;",
+            new { IdUsuario = id });
+
+        return rows > 0;
+    }
+    catch
+    {
+        return false;
+    }
+}
+
 
         public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
         {
@@ -359,11 +390,10 @@ namespace Biblioteca.Persistencia.Dapper
             // Si encendido == true -> Encendido = 1, Apagado = 0
             // Si encendido == false -> Encendido = 0, Apagado = 1
             string query = @"UPDATE Electrodomestico 
-                            SET Encendido = @encendido, Apagado = @apagado
+                            SET Encendido = @encendido
                             WHERE idElectrodomestico = @idElectrodomestico";
 
-            var apagado = !encendido;
-            await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido, apagado });
+            await _conexion.ExecuteAsync(query, new { idElectrodomestico, encendido });
         }
 
         public async Task ActualizarEstadoAsync(Electrodomestico e)
@@ -406,21 +436,46 @@ namespace Biblioteca.Persistencia.Dapper
             return await _conexion.QueryFirstOrDefaultAsync<Consumo>(sql, new { idElectro });
         }
 
-        public async Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin)
-        {
-            string sql = @"
-                UPDATE Consumo
-                JOIN Electrodomestico e ON e.idElectrodomestico = Consumo.idElectrodomestico
-                SET 
-                    duracion = TIMEDIFF(@fin, inicio),
-                    consumoTotal = 
-                        (TIME_TO_SEC(TIMEDIFF(@fin, inicio)) / 3600) * e.ConsumoPorHora
-                WHERE Consumo.idElectrodomestico = @idElectro
-                ORDER BY idConsumo DESC
-                LIMIT 1";
+    public async Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin)
+    {
+        var dbConn = _conexion as IDbConnection;
+        if (dbConn == null) throw new InvalidOperationException("La conexión no es un DbConnection.");
 
-            await _conexion.ExecuteAsync(sql, new { idElectro, fin });
+        try
+        {
+            if (dbConn.State != ConnectionState.Open)
+                dbConn.Open();
+
+            var sqlGet = @"
+                SELECT idConsumo
+                FROM Consumo
+                WHERE idElectrodomestico = @idElectro
+                ORDER BY idConsumo DESC
+                LIMIT 1;
+            ";
+            var idConsumo = await dbConn.QueryFirstOrDefaultAsync<int?>(sqlGet, new { idElectro });
+
+            if (!idConsumo.HasValue)
+                return;
+
+            var sqlUpd = @"
+                UPDATE Consumo c
+                JOIN Electrodomestico e ON e.idElectrodomestico = c.idElectrodomestico
+                SET 
+                    c.duracion = TIMEDIFF(@fin, c.inicio),
+                    c.consumoTotal = (TIME_TO_SEC(TIMEDIFF(@fin, c.inicio)) / 3600) * e.ConsumoPorHora
+                WHERE c.idConsumo = @idConsumo;
+            ";
+            await dbConn.ExecuteAsync(sqlUpd, new { fin, idConsumo = idConsumo.Value });
         }
+        finally
+        {
+            if (dbConn.State != ConnectionState.Closed)
+                dbConn.Close();
+        }
+    }
+
+
 
         public async Task ActualizarElectrodomesticoAsync(Electrodomestico electro)
         {

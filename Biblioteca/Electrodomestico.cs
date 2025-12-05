@@ -8,7 +8,6 @@
       public string Tipo { get; set; }
       public string Ubicacion { get; set; }
       public bool Encendido { get; set; }
-      public bool Apagado { get; set; }
 
       // PROPIEDADES NECESARIAS PARA EL CONTROLADOR
       public DateTime? Inicio { get; set; }     // Cuándo se encendió

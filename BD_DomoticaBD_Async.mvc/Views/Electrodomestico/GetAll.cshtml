@@ -31,11 +31,13 @@
                         <td>@e.Tipo</td>
                         <td>@e.Ubicacion</td>
                         <td>
-                            <button class="btn btn-sm toggle-encendido-btn"
-                                    data-id="@e.IdElectrodomestico"
+                        <form asp-action="Toggle" method="post" asp-route-id="@e.IdElectrodomestico" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm toggle-encendido-btn"
                                     aria-pressed="@(e.Encendido ? "true" : "false")">
                                 @(e.Encendido ? "Si" : "No")
                             </button>
+                        </form>
                         </td>
 
                         <td>
@@ -49,39 +51,6 @@
                 }
             </tbody>
         </table>
-    }
-
-    @section Scripts
-    {
-    <script>
-        document.querySelectorAll(".toggle-encendido-btn").forEach(btn => {
-            btn.addEventListener("click", async () => {
-                const id = parseInt(btn.dataset.id);
-                const currentlyOn = btn.getAttribute("aria-pressed") === "true";
-                const wantedState = !currentlyOn;
-
-                try {
-                    const res = await fetch("/Electrodomestico/ToggleEncendido", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ idElectrodomestico: id, encendido: wantedState })
-                    });
-
-                    if (!res.ok) {
-                        alert("Error al cambiar el estado");
-                        return;
-                    }
-
-                    // Actualizar texto y atributo localmente
-                    btn.textContent = wantedState ? "Si" : "No";
-                    btn.setAttribute("aria-pressed", wantedState ? "true" : "false");
-                } catch (ex) {
-                    console.error(ex);
-                    alert("No se pudo conectar con el servidor.");
-                }
-            });
-        });
-    </script>
     }
 
     <div class="d-flex justify-content-between mt-3">

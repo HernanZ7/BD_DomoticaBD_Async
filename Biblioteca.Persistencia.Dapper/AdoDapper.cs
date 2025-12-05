@@ -67,7 +67,6 @@ public class AdoDapper : IAdo
         parametros.Add("@unTipo", electrodomestico.Tipo);
         parametros.Add("@unUbicacion", electrodomestico.Ubicacion);
         parametros.Add("@unEncendido", electrodomestico.Encendido);
-        parametros.Add("@unApagado", electrodomestico.Apagado);
 
         _conexion.Execute("altaElectrodomestico", parametros);
 

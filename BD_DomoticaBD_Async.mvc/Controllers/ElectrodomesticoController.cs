@@ -46,7 +46,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                     Tipo = e.Tipo,
                     Ubicacion = e.Ubicacion,
                     Encendido = e.Encendido,
-                    Apagado = e.Apagado,
                     ConsumoTotal = consumo,
                     Inicio = consumoActivo?.Inicio
                 });
@@ -150,7 +149,6 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 Tipo = electro.Tipo,
                 Ubicacion = electro.Ubicacion,
                 Encendido = electro.Encendido,
-                Apagado = electro.Apagado,
                 ConsumoTotal = await _repo.ObtenerConsumoTotalElectroAsync(electro.IdElectrodomestico),
                 ConsumoPorHora = electro.ConsumoPorHora
             };
@@ -202,35 +200,32 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             return Ok();
         }
 
-        // (Opcional) Toggle que redirige (mantengo para compatibilidad)
-        [HttpPost]
-        public async Task<IActionResult> Toggle(int id)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Toggle(int id)
+    {
+        var electro = await _repo.ObtenerElectrodomesticoAsync(id);
+        if (electro == null) return NotFound();
+
+
+        var nuevoEstado = !electro.Encendido;
+        // Actualizo sólo el estado con el método específico
+        await _repo.ActualizarEstadoElectrodomesticoAsync(electro.IdElectrodomestico, nuevoEstado);
+
+        if (nuevoEstado)
         {
-            var electro = await _repo.ObtenerElectrodomesticoAsync(id);
-
-            if (electro == null)
-                return NotFound();
-
-            if (!electro.Encendido)
-            {
-                // ENCENDER
-                electro.Encendido = true;
-                electro.Apagado = false;
-
-                await _repo.ActualizarElectrodomesticoAsync(electro);
-                await _repo.CrearRegistroConsumoAsync(id, DateTime.Now);
-            }
-            else
-            {
-                // APAGAR
-                electro.Encendido = false;
-                electro.Apagado = true;
-
-                await _repo.ActualizarElectrodomesticoAsync(electro);
-                await _repo.FinalizarRegistroConsumoAsync(id, DateTime.Now);
-            }
-
-            return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
+            // ENCENDER -> crear registro de consumo
+            await _repo.CrearRegistroConsumoAsync(id, DateTime.Now);
         }
+        else
+        {
+            // APAGAR -> finalizar registro de consumo
+            await _repo.FinalizarRegistroConsumoAsync(id, DateTime.Now);
+        }
+
+        return RedirectToAction("GetAll", new { idCasa = electro.IdCasa });
+    }
+
+
     }
 }

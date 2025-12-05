@@ -64,15 +64,17 @@
     // Inyectamos ConsumoPorHora del modelo al JavaScript.
     // IMPORTANTE: esto queda como número directamente.
     const consumoPorHora = @Model.ConsumoPorHora;
-
+    const isEncendido = @System.Text.Json.JsonSerializer.Serialize(Model.Encendido);
     var inicioIso = "@(Model.Inicio.HasValue ? Model.Inicio.Value.ToString("o") : "")";
 
-    if (inicioIso) {
+
+    if (inicioIso && isEncendido) {
 
         const start = new Date(inicioIso);
 
         setInterval(() => {
 
+    console.log(isEncendido)
             const now = new Date();
             const diffMs = now - start;
 

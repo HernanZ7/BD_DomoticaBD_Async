@@ -14,7 +14,6 @@ public class ElectrodomesticoTest : TestBaseAsync
             Tipo = "Lavaropa",
             Ubicacion = "Lavanderia",
             Encendido = false,
-            Apagado = true
         };
         await AdoAsync.AltaElectrodomesticoAsync(Lavarropa);
 
