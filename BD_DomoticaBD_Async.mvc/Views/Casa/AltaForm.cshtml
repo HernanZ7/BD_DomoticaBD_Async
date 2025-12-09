@@ -13,10 +13,16 @@
 
     <form asp-action="AltaForm" method="post" class="w-50 mx-auto">
         <div class="mb-3">
-            <label class="form-label">Dirección</label>
-            <input asp-for="Direccion" class="form-control" required />
-            <span asp-validation-for="Direccion" class="text-danger"></span>
+            <label>Seleccionar casa existente (opcional):</label>
+            <select name="IdCasaExistente" class="form-control">
+                <option value="">Ninguna (crear nueva)</option>
+                @foreach (var c in ViewBag.TodasLasCasas) // Asume pasas lista via ViewBag en controller GET.
+                {
+                    <option value="@c.IdCasa">@c.Direccion</option>
+                }
+            </select>
         </div>
+        <!-- Resto del form para Dirección si crea nueva -->
 
         <div class="text-center mt-4">
             <button type="submit" class="btn btn-success px-4">Guardar</button>

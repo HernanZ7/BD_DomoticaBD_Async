@@ -216,61 +216,61 @@ namespace Biblioteca.Persistencia.Dapper
         }
 
 
-public async Task<bool> EliminarUsuarioAsync(int id)
-{
-    try
-    {
-        // 1) Obtener las casas asociadas al usuario (antes de borrar relaciones)
-        var casas = (await _conexion.QueryAsync<int>(
-            "SELECT idCasa FROM casaUsuario WHERE idUsuario = @IdUsuario",
-            new { IdUsuario = id })).ToList();
-
-        // 2) Borrar relaciones del usuario en la tabla intermedia
-        await _conexion.ExecuteAsync(
-            "DELETE FROM casaUsuario WHERE idUsuario = @IdUsuario",
-            new { IdUsuario = id });
-
-        // 3) Para cada casa obtenida, si ya no tiene relaciones con otros usuarios,
-        //    borrar dependencias en el orden correcto y luego la casa.
-        foreach (var idCasa in casas)
+        public async Task<bool> EliminarUsuarioAsync(int id)
         {
-            var restantes = await _conexion.QueryFirstOrDefaultAsync<int>(
-                "SELECT COUNT(1) FROM casaUsuario WHERE idCasa = @IdCasa",
-                new { IdCasa = idCasa });
+            try
+            {
+                // 1) Obtener las casas asociadas al usuario (antes de borrar relaciones)
+                var casas = (await _conexion.QueryAsync<int>(
+                    "SELECT idCasa FROM casaUsuario WHERE idUsuario = @IdUsuario",
+                    new { IdUsuario = id })).ToList();
 
-            if (restantes > 0) 
-                continue; // casa compartida, no borrar
+                // 2) Borrar relaciones del usuario en la tabla intermedia
+                await _conexion.ExecuteAsync(
+                    "DELETE FROM casaUsuario WHERE idUsuario = @IdUsuario",
+                    new { IdUsuario = id });
 
-            // Borrar dependencias (orden importante según FKs)
-            await _conexion.ExecuteAsync(
-                "DELETE FROM HistorialRegistro WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
-                new { IdCasa = idCasa });
+                // 3) Para cada casa obtenida, si ya no tiene relaciones con otros usuarios,
+                //    borrar dependencias en el orden correcto y luego la casa.
+                foreach (var idCasa in casas)
+                {
+                    var restantes = await _conexion.QueryFirstOrDefaultAsync<int>(
+                        "SELECT COUNT(1) FROM casaUsuario WHERE idCasa = @IdCasa",
+                        new { IdCasa = idCasa });
 
-            await _conexion.ExecuteAsync(
-                "DELETE FROM Consumo WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
-                new { IdCasa = idCasa });
+                    if (restantes > 0)
+                        continue; // casa compartida, no borrar
 
-            await _conexion.ExecuteAsync(
-                "DELETE FROM Electrodomestico WHERE idCasa = @IdCasa;",
-                new { IdCasa = idCasa });
+                    // Borrar dependencias (orden importante según FKs)
+                    await _conexion.ExecuteAsync(
+                        "DELETE FROM HistorialRegistro WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
+                        new { IdCasa = idCasa });
 
-            await _conexion.ExecuteAsync(
-                "DELETE FROM Casa WHERE idCasa = @IdCasa;",
-                new { IdCasa = idCasa });
+                    await _conexion.ExecuteAsync(
+                        "DELETE FROM Consumo WHERE idElectrodomestico IN (SELECT idElectrodomestico FROM Electrodomestico WHERE idCasa = @IdCasa);",
+                        new { IdCasa = idCasa });
+
+                    await _conexion.ExecuteAsync(
+                        "DELETE FROM Electrodomestico WHERE idCasa = @IdCasa;",
+                        new { IdCasa = idCasa });
+
+                    await _conexion.ExecuteAsync(
+                        "DELETE FROM Casa WHERE idCasa = @IdCasa;",
+                        new { IdCasa = idCasa });
+                }
+
+                // 4) Borrar el usuario
+                var rows = await _conexion.ExecuteAsync(
+                    "DELETE FROM Usuario WHERE idUsuario = @IdUsuario;",
+                    new { IdUsuario = id });
+
+                return rows > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
-
-        // 4) Borrar el usuario
-        var rows = await _conexion.ExecuteAsync(
-            "DELETE FROM Usuario WHERE idUsuario = @IdUsuario;",
-            new { IdUsuario = id });
-
-        return rows > 0;
-    }
-    catch
-    {
-        return false;
-    }
-}
 
 
         public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
@@ -350,7 +350,7 @@ public async Task<bool> EliminarUsuarioAsync(int id)
             ";
 
             var result = await _conexion.ExecuteScalarAsync<double>(
-                sql, 
+                sql,
                 new { idElectro = idElectrodomestico }
             );
 
@@ -436,29 +436,29 @@ public async Task<bool> EliminarUsuarioAsync(int id)
             return await _conexion.QueryFirstOrDefaultAsync<Consumo>(sql, new { idElectro });
         }
 
-    public async Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin)
-    {
-        var dbConn = _conexion as IDbConnection;
-        if (dbConn == null) throw new InvalidOperationException("La conexión no es un DbConnection.");
-
-        try
+        public async Task FinalizarRegistroConsumoAsync(int idElectro, DateTime fin)
         {
-            if (dbConn.State != ConnectionState.Open)
-                dbConn.Open();
+            var dbConn = _conexion as IDbConnection;
+            if (dbConn == null) throw new InvalidOperationException("La conexión no es un DbConnection.");
 
-            var sqlGet = @"
+            try
+            {
+                if (dbConn.State != ConnectionState.Open)
+                    dbConn.Open();
+
+                var sqlGet = @"
                 SELECT idConsumo
                 FROM Consumo
                 WHERE idElectrodomestico = @idElectro
                 ORDER BY idConsumo DESC
                 LIMIT 1;
             ";
-            var idConsumo = await dbConn.QueryFirstOrDefaultAsync<int?>(sqlGet, new { idElectro });
+                var idConsumo = await dbConn.QueryFirstOrDefaultAsync<int?>(sqlGet, new { idElectro });
 
-            if (!idConsumo.HasValue)
-                return;
+                if (!idConsumo.HasValue)
+                    return;
 
-            var sqlUpd = @"
+                var sqlUpd = @"
                 UPDATE Consumo c
                 JOIN Electrodomestico e ON e.idElectrodomestico = c.idElectrodomestico
                 SET 
@@ -466,14 +466,14 @@ public async Task<bool> EliminarUsuarioAsync(int id)
                     c.consumoTotal = (TIME_TO_SEC(TIMEDIFF(@fin, c.inicio)) / 3600) * e.ConsumoPorHora
                 WHERE c.idConsumo = @idConsumo;
             ";
-            await dbConn.ExecuteAsync(sqlUpd, new { fin, idConsumo = idConsumo.Value });
+                await dbConn.ExecuteAsync(sqlUpd, new { fin, idConsumo = idConsumo.Value });
+            }
+            finally
+            {
+                if (dbConn.State != ConnectionState.Closed)
+                    dbConn.Close();
+            }
         }
-        finally
-        {
-            if (dbConn.State != ConnectionState.Closed)
-                dbConn.Close();
-        }
-    }
 
 
 
@@ -490,6 +490,14 @@ public async Task<bool> EliminarUsuarioAsync(int id)
             ";
 
             await _conexion.ExecuteAsync(sql, electro);
-        }      
+        }
+    
+        public async Task CasaAUsuarioAsync(int idUsuario, int idCasa)
+        {
+            var parametros = new DynamicParameters();  // Crea params.
+            parametros.Add("@unIdUsuario", idUsuario);  // Param para SP.
+            parametros.Add("@unIdCasa", idCasa);  // Param para SP.
+            await _conexion.ExecuteAsync("asignarCasaAUsuario", parametros, commandType: CommandType.StoredProcedure);  // Ejecuta SP async.
+        }
     }
 }

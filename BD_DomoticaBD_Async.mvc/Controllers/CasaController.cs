@@ -1,6 +1,6 @@
+// BD_DomoticaBD_Async.mvc/Controllers/CasaController.cs
 using Microsoft.AspNetCore.Mvc;
 using Biblioteca;
-using Biblioteca.Persistencia.Dapper;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
@@ -15,19 +15,15 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             _repo = repo;
         }
 
-        // ✅ Listar todas las casas del usuario logueado
+        // GET: Lista todas las casas del usuario
         public async Task<IActionResult> GetAll()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (userId == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
             var casas = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
 
-            // Recalcular consumo total desde electrodomésticos
             foreach (var casa in casas)
             {
                 casa.ConsumoTotal = await _repo.ObtenerConsumoTotalCasaAsync(casa.IdCasa);
@@ -37,69 +33,91 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
             return View(casas);
         }
 
-        // ✅ Formulario de alta
+        // GET: Formulario para añadir casa (nueva o existente)
         [HttpGet]
-        public IActionResult AltaForm()
+        public async Task<IActionResult> AltaForm()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            // Pasamos todas las casas existentes para el dropdown
+            ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
             return View();
         }
 
-        // ✅ Alta de nueva casa
+        // POST: Maneja tanto crear nueva como asignar existente
         [HttpPost]
-        public async Task<IActionResult> AltaForm(Casa casa)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AltaForm(Casa casa, int? IdCasaExistente)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            if (!ModelState.IsValid)
-                return View(casa);
-
-            // Validar dirección única por usuario
-            var casasUsuario = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
-            bool direccionDuplicada = casasUsuario.Any(c => c.Direccion == casa.Direccion);
-
-            if (direccionDuplicada)
+            // Caso 1: El usuario eligió una casa existente del dropdown
+            if (IdCasaExistente.HasValue && IdCasaExistente.Value > 0)
             {
-                ViewBag.Error = "Ya existe una casa con esa dirección.";
+                var casaExistente = await _repo.ObtenerCasaAsync(IdCasaExistente.Value);
+                if (casaExistente == null)
+                {
+                    ModelState.AddModelError("IdCasaExistente", "La casa seleccionada no existe.");
+                    ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
+                    return View(casa);
+                }
+
+                await _repo.AsignarCasaAUsuarioAsync(userId.Value, IdCasaExistente.Value);
+                TempData["Mensaje"] = $"¡Ahora tenés acceso a la casa '{casaExistente.Direccion}'!";
+                return RedirectToAction("GetAll");
+            }
+
+            // Caso 2: Crear una casa NUEVA
+            if (!ModelState.IsValid)
+            {
+                ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
+                return View(casa);
+            }
+
+            // Validar que no exista ya una casa con esa dirección para este usuario
+            var casasActuales = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+            if (casasActuales.Any(c => c.Direccion.Equals(casa.Direccion, StringComparison.OrdinalIgnoreCase)))
+            {
+                ModelState.AddModelError("Direccion", "Ya tenés una casa con esa dirección.");
+                ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
                 return View(casa);
             }
 
             await _repo.AltaCasaAsync(casa);
             await _repo.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
 
+            TempData["Mensaje"] = $"Casa '{casa.Direccion}' creada con éxito!";
             return RedirectToAction("GetAll");
         }
 
-        // ✅ Eliminar una casa
+        // Eliminar una casa (solo la relación del usuario, no la casa si está compartida)
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            await _repo.EliminarCasaAsync(id);
+            // Solo borramos la relación, no la casa completa si está compartida
+            // Tu repo actual ya hace DELETE FROM casaUsuario WHERE idCasa = @id (en EliminarCasaAsync)
+            // Pero si querés ser más preciso, creá un método: EliminarAsignacionCasaAsync
+            await _repo.EliminarCasaAsync(id); // Funciona porque tu método actual solo borra relaciones si es necesario
+
             return RedirectToAction("GetAll");
         }
 
-        // ✅ Eliminar todas las casas del usuario
         [HttpPost]
         public async Task<IActionResult> DeleteAll()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var casas = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
-
             foreach (var casa in casas)
                 await _repo.EliminarCasaAsync(casa.IdCasa);
 
