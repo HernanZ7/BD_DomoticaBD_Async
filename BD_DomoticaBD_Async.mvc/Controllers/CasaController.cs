@@ -52,16 +52,15 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
         public async Task<IActionResult> AltaForm(Casa casa, int? IdCasaExistente)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Account");
+            if (userId == null) return RedirectToAction("Login", "Account");
 
-            // Caso 1: El usuario eligió una casa existente del dropdown
+            // Caso 1: Quiere acceder a una casa existente
             if (IdCasaExistente.HasValue && IdCasaExistente.Value > 0)
             {
                 var casaExistente = await _repo.ObtenerCasaAsync(IdCasaExistente.Value);
                 if (casaExistente == null)
                 {
-                    ModelState.AddModelError("IdCasaExistente", "La casa seleccionada no existe.");
+                    TempData["Error"] = "La casa seleccionada no existe.";
                     ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
                     return View(casa);
                 }
@@ -71,27 +70,35 @@ namespace BD_DomoticaBD_Async.mvc.Controllers
                 return RedirectToAction("GetAll");
             }
 
-            // Caso 2: Crear una casa NUEVA
-            if (!ModelState.IsValid)
+            // Caso 2: Quiere crear una nueva (IdCasaExistente == -1 o null, pero con Dirección)
+            if (IdCasaExistente == -1 || string.IsNullOrWhiteSpace(casa.Direccion))
             {
-                ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
-                return View(casa);
+                if (string.IsNullOrWhiteSpace(casa.Direccion))
+                {
+                    ModelState.AddModelError("Direccion", "La dirección es obligatoria para crear una nueva casa.");
+                    ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
+                    return View(casa);
+                }
+
+                // Validar duplicado para este usuario
+                var casasActuales = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
+                if (casasActuales.Any(c => c.Direccion.Equals(casa.Direccion, StringComparison.OrdinalIgnoreCase)))
+                {
+                    ModelState.AddModelError("Direccion", "Ya tenés una casa con esa dirección.");
+                    ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
+                    return View(casa);
+                }
+
+                await _repo.AltaCasaAsync(casa);
+                await _repo.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
+                TempData["Mensaje"] = $"Casa '{casa.Direccion}' creada con éxito!";
+                return RedirectToAction("GetAll");
             }
 
-            // Validar que no exista ya una casa con esa dirección para este usuario
-            var casasActuales = await _repo.ObtenerCasasPorUsuarioAsync(userId.Value);
-            if (casasActuales.Any(c => c.Direccion.Equals(casa.Direccion, StringComparison.OrdinalIgnoreCase)))
-            {
-                ModelState.AddModelError("Direccion", "Ya tenés una casa con esa dirección.");
-                ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
-                return View(casa);
-            }
-
-            await _repo.AltaCasaAsync(casa);
-            await _repo.AsignarCasaAUsuarioAsync(userId.Value, casa.IdCasa);
-
-            TempData["Mensaje"] = $"Casa '{casa.Direccion}' creada con éxito!";
-            return RedirectToAction("GetAll");
+            // Caso inesperado
+            TempData["Error"] = "Por favor seleccioná una opción válida.";
+            ViewBag.TodasLasCasas = await _repo.ObtenerTodasLasCasasAsync();
+            return View(casa);
         }
 
         // Eliminar una casa (solo la relación del usuario, no la casa si está compartida)
