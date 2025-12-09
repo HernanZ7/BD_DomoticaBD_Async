@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS `Electrodomestico` (
   `Encendido` BOOLEAN NOT NULL,
   `ConsumoPorHora` FLOAT NOT NULL,
   PRIMARY KEY (`idElectrodomestico`),
-  UNIQUE INDEX `Ubicacion_UNIQUE` (`Ubicacion`),
   CONSTRAINT `fk_Electrodomestico_Casa`
     FOREIGN KEY (`idCasa`)
     REFERENCES `Casa` (`idCasa`)

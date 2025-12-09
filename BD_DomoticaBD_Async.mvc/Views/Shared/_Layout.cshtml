@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,13 +9,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BD_DomoticaBD_Async.mvc.styles.css" asp-append-version="true" />
 </head>
+
 <body>
     <header class="header">
-                <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">IntelHome</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -27,8 +29,10 @@
                                 Casa
                             </button>
                             <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="GetAll">Lista</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa" asp-action="AltaForm">Añadir</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa"
+                                        asp-action="GetAll">Lista</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Casa"
+                                        asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -36,8 +40,10 @@
                                 Usuario
                             </button>
                             <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="GetAll">Lista</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="AltaForm">Añadir</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
+                                        asp-action="GetAll">Lista</a></li>
+                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
+                                        asp-action="AltaForm">Añadir</a></li>
                             </ul>
                         </li>
                         @* Dentro de BD_DomoticaBD_Async.mvc/Views/Shared/_Layout.cshtml *@
@@ -57,13 +63,16 @@
                                 @if (userId != null)
                                 {
                                     <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle" href="#" id="accountMenu"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
                                             @userName
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
-                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Manage">Gestionar</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Account"
+                                                    asp-action="Manage">Gestionar</a></li>
                                             <li>
-                                                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
+                                                <form asp-controller="Account" asp-action="Logout" method="post"
+                                                    style="display:inline">
                                                     <button type="submit" class="dropdown-item">Cerrar Sesión</button>
                                                 </form>
                                             </li>
@@ -73,9 +82,16 @@
                                 else
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+                                        <div class="d-flex align-items-center">
+                                            <a class="nav-link me-2" asp-controller="Account" asp-action="Login">Iniciar
+                                                sesión</a>
+                                            <a class="nav-link" asp-controller="Account"
+                                                asp-action="Register">Registrarse</a>
+                                        </div>
                                     </li>
                                 }
+
+
                             </ul>
                         </div>
                     </ul>
@@ -94,4 +110,5 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
