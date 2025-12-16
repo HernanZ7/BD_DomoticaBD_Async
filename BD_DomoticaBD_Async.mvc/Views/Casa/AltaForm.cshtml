@@ -1,7 +1,9 @@
 @model Biblioteca.Casa
 @{
-    ViewData["Title"] = "Añadir Casa";
+    ViewData["Title"] = "Añadir o acceder a una casa";
     var todasLasCasas = ViewBag.TodasLasCasas as IEnumerable<Biblioteca.Casa> ?? Enumerable.Empty<Biblioteca.Casa>();
+    var casasDelUsuario = ViewBag.CasasDelUsuario as IEnumerable<Biblioteca.Casa> ?? Enumerable.Empty<Biblioteca.Casa>();
+    var casasDisponibles = todasLasCasas.Where(c => !casasDelUsuario.Any(u => u.IdCasa == c.IdCasa));
 }
 
 <div class="container mt-4">
@@ -14,6 +16,17 @@
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger text-center">@TempData["Error"]</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
     }
 
     <form asp-action="AltaForm" method="post" class="w-75 mx-auto">
@@ -29,18 +42,27 @@
                     <select id="opcionCasa" name="IdCasaExistente" class="form-select form-select-lg" required>
                         <option value="">-- Elegí una opción --</option>
                         <option value="-1">Crear una casa NUEVA</option>
-                        <optgroup label="Acceder a una casa existente">
-                            @foreach (var c in todasLasCasas)
-                            {
-                                <option value="@c.IdCasa">@c.Direccion (ID: @c.IdCasa)</option>
-                            }
-                        </optgroup>
+                        @if (casasDisponibles.Any())
+                        {
+                            <optgroup label="Acceder a una casa compartida por otro usuario">
+                                @foreach (var c in casasDisponibles)
+                                {
+                                    <option value="@c.IdCasa">@c.Direccion (ID: @c.IdCasa)</option>
+                                }
+                            </optgroup>
+                        }
+                        else
+                        {
+                            <option disabled>No hay casas disponibles para compartir</option>
+                        }
                     </select>
+                    <div class="form-text">
+                        Las casas que ya tenés no aparecen aquí para evitar duplicados.
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Este div se muestra solo si elige "Crear nueva" -->
         <div id="nuevaCasaForm" class="card mb-4" style="display: none;">
             <div class="card-header bg-success text-white">
                 <h5>2. Ingresá la dirección de tu nueva casa</h5>
@@ -73,7 +95,6 @@
         select.addEventListener('change', function () {
             if (this.value === '-1') {
                 nuevaCasaDiv.style.display = 'block';
-                // Forzar que el input sea requerido
                 document.querySelector('[name="Direccion"]').setAttribute('required', 'required');
             } else {
                 nuevaCasaDiv.style.display = 'none';
@@ -81,7 +102,6 @@
             }
         });
 
-        // Si ya viene con -1 (por validación fallida), mostrar el campo
         if (select.value === '-1') {
             nuevaCasaDiv.style.display = 'block';
         }

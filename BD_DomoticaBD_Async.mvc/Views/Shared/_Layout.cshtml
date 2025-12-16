@@ -39,11 +39,9 @@
                             <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 Usuario
                             </button>
-                            <ul class="dropdown-menu dropdown-menu">
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
-                                        asp-action="GetAll">Lista</a></li>
-                                <li><a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
-                                        asp-action="AltaForm">Añadir</a></li>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Usuario" asp-action="GetAll">Lista de
+                                        usuarios</a></li>
                             </ul>
                         </li>
                         @* Dentro de BD_DomoticaBD_Async.mvc/Views/Shared/_Layout.cshtml *@

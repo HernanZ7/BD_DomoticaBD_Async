@@ -273,10 +273,12 @@ namespace Biblioteca.Persistencia.Dapper
         }
 
 
-        public async Task AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
+        public async Task<bool> AsignarCasaAUsuarioAsync(int idUsuario, int idCasa)
         {
-            var query = "INSERT INTO casaUsuario (IdUsuario, IdCasa) VALUES (@idUsuario, @idCasa)";
-            await _conexion.ExecuteAsync(query, new { idUsuario, idCasa });
+            const string sql = "INSERT IGNORE INTO casaUsuario (idUsuario, idCasa) VALUES (@idUsuario, @idCasa)";
+            var filasInsertadas = await _conexion.ExecuteAsync(sql, new { idUsuario, idCasa });
+
+            return filasInsertadas > 0; // true = se asignó nueva, false = ya existía
         }
 
         public async Task UpdateUsuarioAsync(Usuario usuario)
@@ -491,7 +493,7 @@ namespace Biblioteca.Persistencia.Dapper
 
             await _conexion.ExecuteAsync(sql, electro);
         }
-    
+
         public async Task CasaAUsuarioAsync(int idUsuario, int idCasa)
         {
             var parametros = new DynamicParameters();  // Crea params.
